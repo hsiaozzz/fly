@@ -1,0 +1,151 @@
+:root {
+  color-scheme: light;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f6f7fb;
+  color: #1e1f24;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #1e1f24;
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.subtitle {
+  color: #5a5d72;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 18px 40px rgba(30, 31, 36, 0.08);
+}
+
+.form label,
+.download label {
+  font-weight: 600;
+}
+
+.input-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+input[type="url"] {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #d8dbe8;
+  font-size: 16px;
+}
+
+button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #4c6ef5;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.primary {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.messages {
+  margin-top: 16px;
+}
+
+.message {
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.message-warning {
+  background: #fff4d6;
+  color: #8a5b00;
+}
+
+.message-danger {
+  background: #ffe3e3;
+  color: #b00020;
+}
+
+.result {
+  margin-top: 24px;
+  display: grid;
+  gap: 24px;
+}
+
+.meta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.meta img {
+  width: 160px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #e4e7f4;
+}
+
+select {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #d8dbe8;
+  font-size: 15px;
+}
+
+footer {
+  margin-top: 32px;
+  text-align: center;
+  color: #7a7f9a;
+}
+
+@media (max-width: 640px) {
+  .input-row {
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

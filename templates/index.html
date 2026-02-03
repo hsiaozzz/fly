@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>中文视频下载 | yt-dlp</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <p class="badge">yt-dlp</p>
+        <h1>中文视频下载站</h1>
+        <p class="subtitle">输入视频链接，一键获取清晰度并下载。</p>
+      </header>
+
+      <section class="panel">
+        <form class="form" action="{{ url_for('preview') }}" method="post">
+          <label for="url">视频链接</label>
+          <div class="input-row">
+            <input
+              type="url"
+              id="url"
+              name="url"
+              placeholder="https://example.com/video"
+              value="{{ url }}"
+              required
+            />
+            <button type="submit">解析</button>
+          </div>
+        </form>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="messages">
+              {% for category, message in messages %}
+                <div class="message message-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% if info %}
+          <div class="result">
+            <div class="meta">
+              <img src="{{ info.thumbnail }}" alt="{{ info.title }}" />
+              <div>
+                <h2>{{ info.title }}</h2>
+                <p>来源：{{ info.extractor_key }}</p>
+              </div>
+            </div>
+            <form class="download" action="{{ url_for('download') }}" method="post">
+              <input type="hidden" name="url" value="{{ url }}" />
+              <label for="format_id">选择清晰度</label>
+              <select name="format_id" id="format_id" required>
+                {% for fmt in formats %}
+                  <option value="{{ fmt.id }}">{{ fmt.label }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="primary">下载视频</button>
+            </form>
+          </div>
+        {% endif %}
+      </section>
+
+      <footer>
+        <p>提示：仅支持合法授权内容下载。</p>
+      </footer>
+    </div>
+  </body>
+</html>
