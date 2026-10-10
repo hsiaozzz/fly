@@ -47,6 +47,13 @@ jobs:
       - name: Production build
         run: pnpm build
       - run: pnpm exec playwright-core install --with-deps chromium
+      - name: Permit sandbox namespaces on the disposable runner
+        run: |
+          # Ubuntu's AppArmor policy can reject namespaces for downloaded Chrome.
+          # Keep Chromium's sandbox enabled; this setting affects only this CI VM.
+          if [ -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
       - run: node tools/ci-browser-path.mjs
       - name: Production dependencies and compiled browser QA
         run: pnpm check:production | tee .ci/production-qa.log

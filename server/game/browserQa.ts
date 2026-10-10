@@ -6,6 +6,16 @@ import type { GameArtifact } from "../../shared/game/types";
 import type { ValidationReport } from "../../shared/game/validation";
 
 export type BrowserQaOptions = { signal?: AbortSignal; seed?: number; viewport?: { width: number; height: number }; timeoutMs?: number };
+const failureReasons = ["executable-missing", "executable-permission", "sandbox-unavailable", "crashpad-configuration", "system-library-missing", "launch-timeout", "launch-failed", "worker-memory", "worker-runtime-dependency", "worker-start-failed", "worker-exit", "validation-timeout", "worker-failed"] as const;
+type FailureReason = typeof failureReasons[number];
+export function browserQaFailureReason(value: unknown): FailureReason {
+  return typeof value === "string" && failureReasons.includes(value as FailureReason) ? value as FailureReason : "worker-failed";
+}
+export function browserQaEnvironment(source: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {};
+  for (const key of ["PATH", "SystemRoot", "WINDIR", "TEMP", "TMP", "TMPDIR", "HOME", "USERPROFILE", "LOCALAPPDATA", "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_RUNTIME_DIR", "DISPLAY", "ARCANE_BROWSER_EXECUTABLE"]) if (source[key]) env[key] = source[key];
+  return env;
+}
 let active = 0;
 export async function validateInBrowser(input: GameArtifact, options: BrowserQaOptions = {}): Promise<ValidationReport> {
   const start = Date.now();
@@ -24,13 +34,17 @@ export async function validateInBrowser(input: GameArtifact, options: BrowserQaO
   options.signal?.throwIfAborted();
   active++;
   // No application/API credentials are inherited by the process running games.
-  const env: NodeJS.ProcessEnv = {};
-  for (const key of ["PATH", "SystemRoot", "WINDIR", "TEMP", "TMP", "TMPDIR", "LOCALAPPDATA", "DISPLAY", "ARCANE_BROWSER_EXECUTABLE"]) if (process.env[key]) env[key] = process.env[key];
+  const env = browserQaEnvironment(process.env);
   const production = import.meta.url.endsWith(".js");
   const worker = production ? fileURLToPath(new URL("./browserQaWorker.js", import.meta.url)) : fileURLToPath(new URL("./browserQaWorker.ts", import.meta.url));
   let child: ChildProcess | undefined;
   try {
-    child = fork(worker, [], { env, detached: process.platform !== "win32", execArgv: production ? ["--max-old-space-size=256"] : ["--max-old-space-size=256", "--import", "tsx"], stdio: ["ignore", "ignore", "ignore", "ipc"] });
+    child = fork(worker, [], { env, detached: process.platform !== "win32", execArgv: production ? ["--max-old-space-size=256"] : ["--max-old-space-size=256", "--import", "tsx"], stdio: ["ignore", "ignore", "pipe", "ipc"] });
+    // Keep a bounded tail only for fixed-category crash diagnosis. Never log it.
+    let stderrTail = "";
+    child.stderr?.on("data", (chunk: Buffer | string) => {
+      stderrTail = (stderrTail + String(chunk)).slice(-16_384);
+    });
     return await new Promise<ValidationReport>((resolve, reject) => {
       let settled = false;
       const finish = (report?: ValidationReport, error?: unknown) => {
@@ -39,14 +53,22 @@ export async function validateInBrowser(input: GameArtifact, options: BrowserQaO
         if (error) reject(error); else resolve(report!);
       };
       const unavailable = (detail: string): ValidationReport => ({ ...base, durationMs: Date.now() - start, checks: [...base.checks, { id: "browser", label: "真实浏览器验证", scope: "runtime", status: "unverified", detail }] });
+      const finishUnavailable = (reason: unknown, detail: string) => {
+        if (settled) return;
+        console.error(JSON.stringify({ event: "browser_qa_unavailable", reason: browserQaFailureReason(reason) }));
+        finish(unavailable(detail));
+      };
       const abort = () => finish(undefined, options.signal?.reason ?? new Error("验证已取消。"));
-      const timer = setTimeout(() => finish(unavailable("浏览器验证超时，未获得有效结论。")), Math.min(options.timeoutMs ?? 30_000, 45_000));
+      const timer = setTimeout(() => finishUnavailable("validation-timeout", "浏览器验证超时，未获得有效结论。"), Math.min(options.timeoutMs ?? 30_000, 45_000));
       options.signal?.addEventListener("abort", abort, { once: true });
-      child!.once("error", () => finish(unavailable("浏览器验证进程启动失败。")));
-      child!.once("exit", () => finish(unavailable("浏览器验证进程退出，未获得有效结论。")));
+      child!.once("error", () => finishUnavailable("worker-start-failed", "浏览器验证进程启动失败。"));
+      child!.once("exit", () => {
+        const reason = /heap out of memory/i.test(stderrTail) ? "worker-memory" : /ERR_MODULE_NOT_FOUND|Cannot find (?:package|module)/i.test(stderrTail) ? "worker-runtime-dependency" : "worker-exit";
+        finishUnavailable(reason, "浏览器验证进程退出，未获得有效结论。");
+      });
       child!.on("message", (message: any) => {
         if (message?.report?.artifactHash === hash) finish({ ...message.report, durationMs: Date.now() - start });
-        else if (message?.unavailable) finish(unavailable("浏览器不可用，请配置 ARCANE_BROWSER_EXECUTABLE 或安装受支持的 Chromium。"));
+        else if (message?.unavailable) finishUnavailable(message.reason, "浏览器不可用，请配置 ARCANE_BROWSER_EXECUTABLE 或安装受支持的 Chromium。");
       });
       child!.send({ artifact: input, hash, environment, checks: base.checks });
     });

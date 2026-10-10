@@ -9,6 +9,18 @@ import type {
 } from "../../shared/game/validation";
 
 let browser: Browser | undefined;
+// Playwright launch errors can contain paths, command lines and browser stderr.
+// IPC carries only these finite categories; raw diagnostics stay in this worker.
+function launchFailureReason(error: unknown) {
+  const message = error instanceof Error ? error.message.slice(-16_384) : "";
+  if (/crashpad_handler.*--database is required/i.test(message)) return "crashpad-configuration";
+  if (/No usable sandbox|Failed to move to new namespace|(?:sandbox|user namespace|unshare)[^\n]*(?:Operation not permitted|Permission denied)/i.test(message)) return "sandbox-unavailable";
+  if (/error while loading shared libraries/i.test(message)) return "system-library-missing";
+  if (/ENOENT|Executable doesn't exist/i.test(message)) return "executable-missing";
+  if (/EACCES|Permission denied/i.test(message)) return "executable-permission";
+  if (error instanceof Error && error.name === "TimeoutError") return "launch-timeout";
+  return "launch-failed";
+}
 const executable = () => {
   const configured = process.env.ARCANE_BROWSER_EXECUTABLE;
   if (configured) return configured;
@@ -528,7 +540,7 @@ async function execute(message: {
 }) {
   const path = executable();
   if (!path) {
-    process.send?.({ unavailable: true });
+    process.send?.({ unavailable: true, reason: "executable-missing" });
     return;
   }
   const { artifact, hash, environment } = message;
@@ -536,17 +548,22 @@ async function execute(message: {
   const errors: string[] = [];
   const blocked = new Set<string>();
   const html = bundleGameArtifact(artifact).html;
-  browser = await chromium.launch({
-    executablePath: path,
-    headless: true,
-    chromiumSandbox: true,
-    timeout: 10_000,
-    args: [
-      "--disable-background-networking",
-      "--disable-extensions",
-      "--mute-audio",
-    ],
-  });
+  try {
+    browser = await chromium.launch({
+      executablePath: path,
+      headless: true,
+      chromiumSandbox: true,
+      timeout: 10_000,
+      args: [
+        "--disable-background-networking",
+        "--disable-extensions",
+        "--mute-audio",
+      ],
+    });
+  } catch (error) {
+    process.send?.({ unavailable: true, reason: launchFailureReason(error) });
+    return;
+  }
   let evidence: ValidationReport["evidence"];
   for (const viewport of [environment.viewport, { width: 390, height: 844 }]) {
     for (const seed of [environment.seed, environment.seed + 1]) {
@@ -719,6 +736,6 @@ process.on("disconnect", () => {
 });
 process.once("message", message => {
   void execute(message as Parameters<typeof execute>[0]).catch(() =>
-    process.send?.({ unavailable: true })
+    process.send?.({ unavailable: true, reason: "worker-failed" })
   );
 });
