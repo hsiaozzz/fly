@@ -27,12 +27,13 @@ MySQL 使用已提交的 migration。新增 schema 时在开发环境执行 `pnp
 ```sh
 pnpm check
 pnpm test
+pnpm check:process-cleanup
 pnpm build
 pnpm check:production
 pnpm start
 ```
 
-测试默认全部使用 mock/本地数据，不调用真实 LLM、OAuth、对象存储。数据库集成用例默认跳过，只有显式 `ARCANE_TEST_DATABASE_URL` 才连接一次性测试库，并使用内存对象存储；不要把生产 URL 配到这个变量。CI 执行空库迁移、单元/集成测试、生产构建、编译后的浏览器 QA 和真实网页回归，并保存验证产物。`pnpm build` 分离开发 Vite chunk，生产入口不加载 Vite 或开发插件。`pnpm check:production` 创建不含配置文件的临时副本，仅安装生产依赖，检查服务导入、HTTP health 和编译后的浏览器 QA；需要先执行 `pnpm build` 并安装 Chromium 或设置 `ARCANE_BROWSER_EXECUTABLE`。它验证依赖和基础行为，不替代真实配置下的生产启动。dev/start 脚本兼容 Windows 与 POSIX shell。
+测试默认全部使用 mock/本地数据，不调用真实 LLM、OAuth、对象存储。数据库集成用例默认跳过，只有显式 `ARCANE_TEST_DATABASE_URL` 才连接一次性测试库，并使用内存对象存储；不要把生产 URL 配到这个变量。CI 执行空库迁移、单元/集成测试、生产构建、编译后的浏览器 QA 和真实网页回归，并保存验证产物。`pnpm build` 分离开发 Vite chunk，生产入口不加载 Vite 或开发插件。`pnpm check:production` 创建不含 `.env` 或业务凭据的临时副本，沿用仓库的 registry／超时 `.npmrc`，仅安装生产依赖，检查服务导入、HTTP health 和编译后的浏览器 QA；需要先执行 `pnpm build` 并安装 Chromium 或设置 `ARCANE_BROWSER_EXECUTABLE`。它验证依赖和基础行为，不替代真实配置下的生产启动。dev/start 脚本兼容 Windows 与 POSIX shell。
 
 服务固定使用 `PORT`；端口占用会失败退出。生产缺少必需配置、签名 secret 少于 32 字符、数据库不可用或 migration 缺失时拒绝启动。`GET /api/health` 检查进程存活；`GET /api/ready` 检查数据库和必要 schema，并在关闭期间返回 503，同时分别返回正在生成与验证的数量。SIGTERM/SIGINT 停止接收新的生成与浏览器验证请求，最多排空 10 秒后关闭连接与数据库池。代理部署时设置准确的 `TRUST_PROXY_HOPS` 和 SSE 超时，生产使用 HTTPS。
 

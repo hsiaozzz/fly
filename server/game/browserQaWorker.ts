@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { chromium, type Browser, type Frame, type Page } from "playwright-core";
+import { chromium, type Browser, type BrowserServer, type Frame, type Page } from "playwright-core";
 import { bundleGameArtifact } from "../../shared/game/bundle";
 import type { GameArtifact } from "../../shared/game/types";
 import type {
@@ -9,6 +9,24 @@ import type {
 } from "../../shared/game/validation";
 
 let browser: Browser | undefined;
+let browserServer: BrowserServer | undefined;
+let shuttingDown = false;
+function shutdown() {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  if (!browserServer) {
+    // Also invokes Playwright's synchronous exit handler during launch, before
+    // its public BrowserServer (and PID registration) becomes available.
+    process.exit(0);
+  }
+  const timer = setTimeout(() => {
+    void browserServer?.kill().finally(() => process.exit(0));
+  }, 600);
+  void browserServer.close().catch(() => browserServer?.kill()).finally(() => {
+    clearTimeout(timer);
+    process.exit(0);
+  });
+}
 // Playwright launch errors can contain paths, command lines and browser stderr.
 // IPC carries only these finite categories; raw diagnostics stay in this worker.
 function launchFailureReason(error: unknown) {
@@ -549,8 +567,10 @@ async function execute(message: {
   const blocked = new Set<string>();
   const html = bundleGameArtifact(artifact).html;
   try {
-    browser = await chromium.launch({
+    browserServer = await chromium.launchServer({
       executablePath: path,
+      host: "127.0.0.1",
+      port: 0,
       headless: true,
       chromiumSandbox: true,
       timeout: 10_000,
@@ -560,6 +580,8 @@ async function execute(message: {
         "--mute-audio",
       ],
     });
+    process.send?.({ browserPid: browserServer.process().pid });
+    browser = await chromium.connect(browserServer.wsEndpoint(), { timeout: 10_000 });
   } catch (error) {
     process.send?.({ unavailable: true, reason: launchFailureReason(error) });
     return;
@@ -728,14 +750,19 @@ async function execute(message: {
   };
   await browser.close();
   browser = undefined;
+  await browserServer.close();
+  browserServer = undefined;
   process.send?.({ report });
 }
-process.on("disconnect", () => {
-  if (browser) void browser.close().finally(() => process.exit(0));
-  else process.exit(0);
+process.on("disconnect", shutdown);
+process.on("message", (message: any) => {
+  if (message?.shutdown === true) shutdown();
 });
 process.once("message", message => {
-  void execute(message as Parameters<typeof execute>[0]).catch(() =>
-    process.send?.({ unavailable: true, reason: "worker-failed" })
-  );
+  if (shuttingDown) return;
+  void execute(message as Parameters<typeof execute>[0]).catch(error => {
+    const message = error instanceof Error ? error.message.slice(-16_384) : "";
+    const reason = error instanceof Error && error.name === "TimeoutError" ? "runtime-step-timeout" : /Target page, context or browser has been closed|Target closed|browser has disconnected/i.test(message) ? "browser-runtime-closed" : "worker-failed";
+    if (!shuttingDown) process.send?.({ unavailable: true, reason });
+  });
 });

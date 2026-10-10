@@ -36,6 +36,8 @@ jobs:
       - run: mkdir -p .ci
       - name: Typecheck
         run: pnpm check
+      - name: Detached process cleanup regression
+        run: pnpm check:process-cleanup
       - name: Migrate disposable MySQL
         run: pnpm db:migrate
         env:

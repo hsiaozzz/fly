@@ -6,7 +6,7 @@ ARCANE 的主分支保存可复现的项目实现。先阅读 [README](README.md
 
 使用 Node.js 22.12+、pnpm 10.4.1，运行 `pnpm install --frozen-lockfile`。配置文件只保存在本机，新增配置项同时更新 `.env.example`。
 
-提交前执行 `pnpm check`、`pnpm test` 和 `pnpm build`。涉及工作台或游戏运行时的改动，还要运行 `node tools/browser-smoke-suite.mjs` 与 `pnpm check:production`；浏览器路径通过 `ARCANE_BROWSER_EXECUTABLE` 配置。
+提交前执行 `pnpm check`、`pnpm test`、`pnpm check:process-cleanup` 和 `pnpm build`。涉及工作台或游戏运行时的改动，还要运行 `node tools/browser-smoke-suite.mjs` 与 `pnpm check:production`；浏览器路径通过 `ARCANE_BROWSER_EXECUTABLE` 配置。进程清理用例在 POSIX 环境运行，CI 使用 Linux 执行。
 
 测试默认不调用付费模型。真实 MySQL 用例只使用显式 `ARCANE_TEST_DATABASE_URL` 指定的一次性测试库，先执行 migrations。不要配置业务数据库。CI 会创建临时 MySQL 8、执行所有迁移和真实浏览器回归。
 

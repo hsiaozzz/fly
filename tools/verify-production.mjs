@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { stopOwnedPosixTree } from "./owned-process-tree.mjs";
 
 const project = fileURLToPath(new URL("../", import.meta.url));
 const args = process.argv.slice(2);
@@ -15,6 +16,7 @@ if (args.some(argument => argument !== "--skip-browser")) {
 const skipBrowser = args.includes("--skip-browser");
 const cancellation = new AbortController();
 const children = new Set();
+let processCleanupFailed = false;
 const cancelled = signal => () => cancellation.abort(new Error(`Production verification interrupted by ${signal}.`));
 const interrupt = cancelled("SIGINT"), terminate = cancelled("SIGTERM");
 process.once("SIGINT", interrupt);
@@ -67,7 +69,8 @@ async function stopTree(child) {
   if (!child.pid) return;
   if (process.platform === "win32") {
     await new Promise(resolve => {
-      const killer = spawn("taskkill", ["/PID", String(child.pid), "/T", "/F"], {
+      const taskkill = path.join(environment.SystemRoot ?? environment.SYSTEMROOT ?? environment.WINDIR ?? "C:\\Windows", "System32", "taskkill.exe");
+      const killer = spawn(taskkill, ["/PID", String(child.pid), "/T", "/F"], {
         env: environment, stdio: "ignore", windowsHide: true,
       });
       let finished = false;
@@ -77,8 +80,7 @@ async function stopTree(child) {
       killer.once("close", finish);
     });
   } else {
-    try { process.kill(-child.pid, "SIGKILL"); }
-    catch { child.kill("SIGKILL"); }
+    await stopOwnedPosixTree(child);
   }
 }
 
@@ -104,13 +106,16 @@ async function run(label, command, commandArgs, cwd, timeoutMs, streamOutput = f
     const stop = async error => {
       if (stopping || settled) return;
       stopping = true;
-      await stopTree(child).catch(() => {});
-      finish(error);
+      try { await stopTree(child); finish(error); }
+      catch (cleanupError) {
+        processCleanupFailed = true;
+        finish(new Error(`${error.message} Process cleanup failed: ${cleanupError.message}`, { cause: cleanupError }));
+      }
     };
     const abort = () => { void stop(cancellation.signal.reason); };
     const timer = setTimeout(() => { void stop(new Error(`Timed out after ${timeoutMs / 1000} seconds.`)); }, timeoutMs);
     cancellation.signal.addEventListener("abort", abort, { once: true });
-    child.once("error", error => { children.delete(child); finish(error); });
+    child.once("error", error => { children.delete(child); if (!stopping) finish(error); });
     child.once("close", (code, signal) => {
       children.delete(child);
       if (!stopping) finish(code === 0 ? undefined : new Error(`Child exited with ${signal ? `signal ${signal}` : `code ${code}`}.`));
@@ -188,12 +193,19 @@ try {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
 } finally {
-  await Promise.allSettled([...children].map(stopTree));
-  if (temporary) {
+  const cleanup = await Promise.allSettled([...children].map(stopTree));
+  const incomplete = cleanup.find(result => result.status === "rejected");
+  if (incomplete) {
+    console.error(`Production verification process cleanup failed: ${incomplete.reason.message}`);
+    process.exitCode = 1;
+  }
+  if (temporary && !incomplete && !processCleanupFailed) {
     await rm(temporary, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 }).catch(error => {
       console.error(`Could not remove the production verification directory: ${error.message}`);
       process.exitCode = 1;
     });
+  } else if (temporary) {
+    console.error(`Retained the verification directory because process cleanup was incomplete: ${temporary}`);
   }
   process.removeListener("SIGINT", interrupt); process.removeListener("SIGTERM", terminate);
 }
