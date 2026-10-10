@@ -1,13 +1,16 @@
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { chromium } from "playwright-core";
+import {
+  browserExecutable,
+  routeGate,
+  settlePreviewLayout,
+} from "./browser-smoke-helpers.mjs";
 
 // Only the browser UI is real. Model, authentication and persistence calls are
 // controlled fixtures; this test never consumes a model API or a database.
 const baseUrl = process.env.ARCANE_TEST_BASE_URL || "http://127.0.0.1:3090";
-const executablePath =
-  process.env.ARCANE_BROWSER_EXECUTABLE ||
-  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+const executablePath = browserExecutable();
 const browser = await chromium.launch({ executablePath, headless: true });
 const context = await browser.newContext();
 const page = await context.newPage();
@@ -87,9 +90,9 @@ const versions = new Map([
 ]);
 let nextVersionId = 30,
   failNextSave = false,
-  delayNextSave = false,
-  releaseSave,
-  releaseStream;
+  delayNextSave = false;
+const delayedSave = routeGate("delayed project save");
+const delayedStream = routeGate("cancelled project generation");
 let publication = null;
 const publishedId = "a02557f5-ab26-487b-8d42-0123456789ab";
 const loaded = item =>
@@ -124,6 +127,7 @@ await context.route("**/api/trpc/**", async route => {
       ? JSON.parse(url.searchParams.get("input") || "{}")
       : route.request().postDataJSON();
   const results = [];
+  let delayed = false;
   for (let index = 0; index < procedures.length; index++) {
     const procedure = procedures[index],
       input = raw?.[index]?.json;
@@ -167,9 +171,8 @@ await context.route("**/api/trpc/**", async route => {
     else if (procedure === "game.saveVersion") {
       if (delayNextSave) {
         delayNextSave = false;
-        await new Promise(resolve => {
-          releaseSave = resolve;
-        });
+        delayed = true;
+        await delayedSave.hold();
       }
       if (failNextSave) {
         failNextSave = false;
@@ -301,17 +304,19 @@ await context.route("**/api/trpc/**", async route => {
       results.push(success({ success: true }));
     } else results.push(success(null));
   }
-  await route.fulfill({
-    contentType: "application/json",
-    body: JSON.stringify(results),
-  });
+  try {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(results),
+    });
+  } finally {
+    if (delayed) delayedSave.finish();
+  }
 });
 await context.route("**/api/game/stream", async route => {
   const input = route.request().postDataJSON();
-  if (input.prompt.includes("慢任务"))
-    await new Promise(resolve => {
-      releaseStream = resolve;
-    });
+  const delayed = input.prompt.includes("慢任务");
+  if (delayed) await delayedStream.hold();
   const result = {
     artifact: artifactOf("旧 A 任务", "旧结果"),
     build: pendingBuild,
@@ -319,12 +324,16 @@ await context.route("**/api/game/stream", async route => {
     assistantMessage: "旧任务完成",
     runId: input.runId,
   };
-  await route
-    .fulfill({
-      contentType: "text/event-stream",
-      body: `event: complete\ndata: ${JSON.stringify(result)}\n\n`,
-    })
-    .catch(() => {});
+  try {
+    await route
+      .fulfill({
+        contentType: "text/event-stream",
+        body: `event: complete\ndata: ${JSON.stringify(result)}\n\n`,
+      })
+      .catch(() => {});
+  } finally {
+    if (delayed) delayedStream.finish();
+  }
 });
 const preview = () => page.frameLocator('iframe[title="游戏隔离预览"]');
 async function waitGame(label) {
@@ -387,10 +396,12 @@ try {
 
   await page.locator(".composer textarea").fill("慢任务修改 A");
   await page.getByRole("button", { name: "应用修改", exact: true }).click();
+  await delayedStream.waitUntilEntered();
   await page.getByRole("button", { name: "停止", exact: true }).waitFor();
   await switchProject("B 项目");
   await waitGame("B 原始");
-  releaseStream?.();
+  delayedStream.release();
+  await delayedStream.waitUntilFinished();
   await page.waitForTimeout(300);
   assert.equal(
     await page.getByRole("heading", { name: "旧 A 任务", exact: true }).count(),
@@ -401,11 +412,19 @@ try {
 
   await editGame("A 延迟保存");
   delayNextSave = true;
+  const savedVersionsBeforeDelay = versions.get(1).length;
   await page.getByRole("button", { name: "Save version", exact: true }).click();
+  await delayedSave.waitUntilEntered();
   await page.getByRole("button", { name: "保存中…", exact: true }).waitFor();
   await switchProject("B 项目");
   await waitGame("B 原始");
-  releaseSave?.();
+  delayedSave.release();
+  await delayedSave.waitUntilFinished();
+  assert.equal(
+    versions.get(1).length,
+    savedVersionsBeforeDelay + 1,
+    "延迟保存请求必须真正完成"
+  );
   await page
     .getByRole("button", { name: "Save version", exact: true })
     .waitFor();
@@ -495,7 +514,7 @@ try {
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "手机预览", exact: true }).click();
-  await page.waitForTimeout(500);
+  await settlePreviewLayout(page);
   await waitGame("A 发布版本");
   const titleBox = await page.locator(".preview-top").boundingBox();
   const frameBox = await page.locator(".preview-frame-wrap").boundingBox();
@@ -550,7 +569,7 @@ try {
     "Project browser smoke passed: project isolation/save failure/delayed save/stale task/publish/Explore/Play/Remix/revoke/mobile."
   );
 } finally {
-  releaseSave?.();
-  releaseStream?.();
+  delayedSave.release();
+  delayedStream.release();
   await browser.close();
 }

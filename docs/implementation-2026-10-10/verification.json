@@ -3,8 +3,7 @@
   "status": "local_checks_passed_with_explicit_skips",
   "environment": {
     "node": "Windows Node.js v26.7.0 invoked from WSL",
-    "browser": "local headless Microsoft Edge",
-    "workspace": "/mnt/e/code/arcanegame"
+    "browser": "local headless Microsoft Edge"
   },
   "checks": [
     {

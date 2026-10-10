@@ -1,10 +1,20 @@
 name: Verify ARCANE
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     services:
       mysql:
         image: mysql:8.0
@@ -25,15 +35,35 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm check
-      - run: pnpm db:migrate
+      - run: mkdir -p .ci
+      - name: Typecheck
+        run: pnpm check
+      - name: Migrate disposable MySQL
+        run: pnpm db:migrate
         env:
           DATABASE_URL: mysql://root:disposable-ci-password@127.0.0.1:3306/arcane_test
-      - run: pnpm test
+      - name: Unit and MySQL integration tests
+        run: pnpm test --reporter=default --reporter=json --outputFile=.ci/test-results.json
         env:
           ARCANE_TEST_DATABASE_URL: mysql://root:disposable-ci-password@127.0.0.1:3306/arcane_test
-      - run: pnpm build
+      - name: Production build
+        run: pnpm build
       - run: pnpm exec playwright-core install --with-deps chromium
       - run: node tools/ci-browser-path.mjs
-      - run: pnpm qa:smoke
-      - run: node tools/browser-smoke-suite.mjs
+      - name: Production dependencies and compiled browser QA
+        run: pnpm check:production | tee .ci/production-qa.log
+      - name: Browser UI regression
+        run: node tools/browser-smoke-suite.mjs | tee .ci/browser-ui.log
+      - name: Preserve verification artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-verification-${{ github.sha }}
+          path: |
+            .ci/
+            docs/implementation-2026-10-10/project-flow-smoke.json
+            docs/implementation-2026-10-10/*workspace*.png
+            docs/implementation-2026-10-10/project-*.png
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: warn

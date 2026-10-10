@@ -102,28 +102,28 @@ P0 表示公开部署、成本或数据访问上的阻断项；P1 表示核心�
 
 | 优先级 | 位置 | 问题和用户后果 | 应采取的动作 |
 |---|---|---|---|
-| P0 | [routers.ts:29](/mnt/e/code/arcanegame/server/routers.ts:29)、[streamRoute.ts:10](/mnt/e/code/arcanegame/server/game/streamRoute.ts:10) | 两个生成入口无需登录，未见额度、限流或并发预算；SSE 的输入限制更弱 | 共用鉴权、匿名额度、用户/IP 配额、总 bytes/token/concurrency 上限 |
-| P0 | [storageProxy.ts:5](/mnt/e/code/arcanegame/server/_core/storageProxy.ts:5) | 私有对象代理只按 key 换签名，知道路径即可绕过项目接口权限 | 私有对象 ACL、短时签名；分享使用独立可撤销 token；公开产物单独分区 |
-| P0 | [迁移 journal:9](/mnt/e/code/arcanegame/drizzle/meta/_journal.json:9) | 首个迁移缺失，新库无法复现 | 补完整迁移链；CI 从空库执行所有 migration |
-| P1 | [GameWorkspace.tsx:122](/mnt/e/code/arcanegame/client/src/components/GameWorkspace.tsx:122)、[编辑逻辑:224](/mnt/e/code/arcanegame/client/src/components/GameWorkspace.tsx:224) | 编辑 files，预览读 artifact；保存仍不更新它；源码与 JSON/ZIP 分裂 | 一个版本快照驱动编辑、预览、导出、保存；draft 与 savedRevision 明确区分 |
-| P1 | [GameWorkspace.tsx:256](/mnt/e/code/arcanegame/client/src/components/GameWorkspace.tsx:256) | 选项目只换 ID，旧内容未加载；可能把 A 的作品存进 B | 项目路由、最新版本加载、任务基线绑定、切换时保存／处理 dirty draft |
-| P1 | [历史函数:232](/mnt/e/code/arcanegame/client/src/components/GameWorkspace.tsx:232) | 版本 query 和函数存在，但首页没有历史列表及操作入口 | 接通历史面板、diff、预览、恢复；首建项目和匿名认领流程 |
-| P1 | [gamePreview.ts:15](/mnt/e/code/arcanegame/client/src/lib/gamePreview.ts:15) | 只把 index.html 放进 srcDoc，其他 JS/CSS/assets 不会随文件树解析 | 明确单文件快速模式；多文件使用真正构建产物和资源服务 |
-| P1 | [freegen.ts:415](/mnt/e/code/arcanegame/server/game/freegen.ts:415) | 生成和修改总设 passed；人工编辑、历史加载也沿用通过状态 | 拆分结构、构建、运行、玩法状态，结果绑定 contentHash；失败候选可保存但不能宣称通过 |
-| P1 | [freegen.ts:308](/mnt/e/code/arcanegame/server/game/freegen.ts:308) | 非法 JSON 的异常没有进入二次重试 | 分开网络、截断、解析、schema、运行错误；携带正确上下文做受预算约束的修正 |
-| P1 | [freegen.ts:317](/mnt/e/code/arcanegame/server/game/freegen.ts:317) | 首次校验丢弃 valid/errors，再检查已裁剪的文件集；非法或重复文件被静默忽略 | 不吞原始诊断；一致地拒绝或显式修复；保证文件和依赖完整性 |
-| P1 | [freegen.ts:342](/mnt/e/code/arcanegame/server/game/freegen.ts:342) | 修正请求不附待修候选；patch 修正又合并到原始 existing，可能丢前次改动 | 固定当前 candidate/baseHash；修复按缺陷和文件范围增量应用 |
-| P1 | [freegen.ts:266](/mnt/e/code/arcanegame/server/game/freegen.ts:266) | 空 patch 可成功；仅按路径替换／添加，没有完整删除／重命名语义 | 结构化 PatchSet、有效变更检查、预条件、diff、原子应用和回滚 |
-| P1 | [GameWorkspace.tsx:211](/mnt/e/code/arcanegame/client/src/components/GameWorkspace.tsx:211)、[streamRoute.ts:37](/mnt/e/code/arcanegame/server/game/streamRoute.ts:37) | patch Stop 无效；关闭生成也不取消后端 LLM；旧结果可能覆盖新画布 | client/job/worker/provider 共用取消链、runId 和 revision；拒绝过期结果 |
-| P1 | [streamRoute.ts:73](/mnt/e/code/arcanegame/server/game/streamRoute.ts:73) | 完成后才发送步骤和切块解释，并非实时生成进度 | 阶段事件实时发出、event sequence、心跳、断线续接、可恢复任务 |
-| P1 | [db.ts:65](/mnt/e/code/arcanegame/server/db.ts:65) | max(version)+1 并发冲突；上传／DB 分步骤失败会留半成品及孤儿文件 | 原子序号、requestId 幂等、暂存上传、短事务提交、ready 状态与失败清理 |
-| P1 | [GameWorkspace.tsx:104](/mnt/e/code/arcanegame/client/src/components/GameWorkspace.tsx:104)、[runtimeProbe.ts:63](/mnt/e/code/arcanegame/shared/game/runtimeProbe.ts:63) | 不验 message 来源和完整结构；report:{} 可使渲染崩溃，也可伪造绿灯 | iframe source/runId 校验和严格 schema；真正 QA 来自独立受控测试环境 |
-| P1 | [GameWorkspace.tsx:131](/mnt/e/code/arcanegame/client/src/components/GameWorkspace.tsx:131) | async persist 内调用 mutate，await 不等待实际保存 | mutateAsync；明确 saving/saved/failed；存储成功后才确认恢复 |
-| P1 | [journeyEngine.ts:227](/mnt/e/code/arcanegame/shared/game/journeyEngine.ts:227) | JS 字符串语法错误被主 tsc 和旧 demo 测试遗漏 | 引擎作为可解析源模块维护；当前源生成临时产物后测试，校验 demo 一致性 |
-| P1 | [vite.ts:6](/mnt/e/code/arcanegame/server/_core/vite.ts:6) | 生产服务静态引入 Vite/config 和 devDependencies | 开发动态 import；纯生产服务入口；干净 production-only 安装启动检查 |
-| P2 | [runtimeProbe.ts:155](/mnt/e/code/arcanegame/shared/game/runtimeProbe.ts:155) | 输入事件立即 down/up、无等待，采样受自动动画污染 | 真浏览器输入与按键持续时间；不同 seed 重跑；按玩法状态验收 |
-| P2 | [compiler.ts:16](/mnt/e/code/arcanegame/shared/game/compiler.ts:16) | 旧 runner 终点 x>4800，但角色受宽 800 世界边界限制；重开不 reset ended/score | 若保留模板，实际构建并跑重开／通关；否则移为明确不支持的实验 |
-| P2 | [db.ts:94](/mnt/e/code/arcanegame/server/db.ts:94) | 版本列表返回完整 artifact，源码既在 DB 又在对象存储，未分页 | 元信息、manifest、源码分离；分页、按需加载、内容 hash 去重 |
+| P0 | [routers.ts:29](../../server/routers.ts#L29)、[streamRoute.ts:10](../../server/game/streamRoute.ts#L10) | 两个生成入口无需登录，未见额度、限流或并发预算；SSE 的输入限制更弱 | 共用鉴权、匿名额度、用户/IP 配额、总 bytes/token/concurrency 上限 |
+| P0 | [storageProxy.ts:5](../../server/_core/storageProxy.ts#L5) | 私有对象代理只按 key 换签名，知道路径即可绕过项目接口权限 | 私有对象 ACL、短时签名；分享使用独立可撤销 token；公开产物单独分区 |
+| P0 | [迁移 journal:9](../../drizzle/meta/_journal.json#L9) | 首个迁移缺失，新库无法复现 | 补完整迁移链；CI 从空库执行所有 migration |
+| P1 | [GameWorkspace.tsx:122](../../client/src/components/GameWorkspace.tsx#L122)、[编辑逻辑:224](../../client/src/components/GameWorkspace.tsx#L224) | 编辑 files，预览读 artifact；保存仍不更新它；源码与 JSON/ZIP 分裂 | 一个版本快照驱动编辑、预览、导出、保存；draft 与 savedRevision 明确区分 |
+| P1 | [GameWorkspace.tsx:256](../../client/src/components/GameWorkspace.tsx#L256) | 选项目只换 ID，旧内容未加载；可能把 A 的作品存进 B | 项目路由、最新版本加载、任务基线绑定、切换时保存／处理 dirty draft |
+| P1 | [历史函数:232](../../client/src/components/GameWorkspace.tsx#L232) | 版本 query 和函数存在，但首页没有历史列表及操作入口 | 接通历史面板、diff、预览、恢复；首建项目和匿名认领流程 |
+| P1 | [gamePreview.ts:15](../../client/src/lib/gamePreview.ts#L15) | 只把 index.html 放进 srcDoc，其他 JS/CSS/assets 不会随文件树解析 | 明确单文件快速模式；多文件使用真正构建产物和资源服务 |
+| P1 | [freegen.ts:415](../../server/game/freegen.ts#L415) | 生成和修改总设 passed；人工编辑、历史加载也沿用通过状态 | 拆分结构、构建、运行、玩法状态，结果绑定 contentHash；失败候选可保存但不能宣称通过 |
+| P1 | [freegen.ts:308](../../server/game/freegen.ts#L308) | 非法 JSON 的异常没有进入二次重试 | 分开网络、截断、解析、schema、运行错误；携带正确上下文做受预算约束的修正 |
+| P1 | [freegen.ts:317](../../server/game/freegen.ts#L317) | 首次校验丢弃 valid/errors，再检查已裁剪的文件集；非法或重复文件被静默忽略 | 不吞原始诊断；一致地拒绝或显式修复；保证文件和依赖完整性 |
+| P1 | [freegen.ts:342](../../server/game/freegen.ts#L342) | 修正请求不附待修候选；patch 修正又合并到原始 existing，可能丢前次改动 | 固定当前 candidate/baseHash；修复按缺陷和文件范围增量应用 |
+| P1 | [freegen.ts:266](../../server/game/freegen.ts#L266) | 空 patch 可成功；仅按路径替换／添加，没有完整删除／重命名语义 | 结构化 PatchSet、有效变更检查、预条件、diff、原子应用和回滚 |
+| P1 | [GameWorkspace.tsx:211](../../client/src/components/GameWorkspace.tsx#L211)、[streamRoute.ts:37](../../server/game/streamRoute.ts#L37) | patch Stop 无效；关闭生成也不取消后端 LLM；旧结果可能覆盖新画布 | client/job/worker/provider 共用取消链、runId 和 revision；拒绝过期结果 |
+| P1 | [streamRoute.ts:73](../../server/game/streamRoute.ts#L73) | 完成后才发送步骤和切块解释，并非实时生成进度 | 阶段事件实时发出、event sequence、心跳、断线续接、可恢复任务 |
+| P1 | [db.ts:65](../../server/db.ts#L65) | max(version)+1 并发冲突；上传／DB 分步骤失败会留半成品及孤儿文件 | 原子序号、requestId 幂等、暂存上传、短事务提交、ready 状态与失败清理 |
+| P1 | [GameWorkspace.tsx:104](../../client/src/components/GameWorkspace.tsx#L104)、[runtimeProbe.ts:63](../../shared/game/runtimeProbe.ts#L63) | 不验 message 来源和完整结构；report:{} 可使渲染崩溃，也可伪造绿灯 | iframe source/runId 校验和严格 schema；真正 QA 来自独立受控测试环境 |
+| P1 | [GameWorkspace.tsx:131](../../client/src/components/GameWorkspace.tsx#L131) | async persist 内调用 mutate，await 不等待实际保存 | mutateAsync；明确 saving/saved/failed；存储成功后才确认恢复 |
+| P1 | [journeyEngine.ts:227](../../shared/game/journeyEngine.ts#L227) | JS 字符串语法错误被主 tsc 和旧 demo 测试遗漏 | 引擎作为可解析源模块维护；当前源生成临时产物后测试，校验 demo 一致性 |
+| P1 | [vite.ts:6](../../server/_core/vite.ts#L6) | 生产服务静态引入 Vite/config 和 devDependencies | 开发动态 import；纯生产服务入口；干净 production-only 安装启动检查 |
+| P2 | [runtimeProbe.ts:155](../../shared/game/runtimeProbe.ts#L155) | 输入事件立即 down/up、无等待，采样受自动动画污染 | 真浏览器输入与按键持续时间；不同 seed 重跑；按玩法状态验收 |
+| P2 | [compiler.ts:16](../../shared/game/compiler.ts#L16) | 旧 runner 终点 x>4800，但角色受宽 800 世界边界限制；重开不 reset ended/score | 若保留模板，实际构建并跑重开／通关；否则移为明确不支持的实验 |
+| P2 | [db.ts:94](../../server/db.ts#L94) | 版本列表返回完整 artifact，源码既在 DB 又在对象存储，未分页 | 元信息、manifest、源码分离；分页、按需加载、内容 hash 去重 |
 
 更多认证、Cookie、角色覆盖、日志脱敏、SSE 解析、移动端、样式和维护细节见三个附件。开发态 debug collector 的 Headers 脱敏缺陷应修，但不能误称生产默认泄露；语音 helper 的 URL 下载风险目前没有公开入口，也不能误称已经可触发的公开漏洞。
 

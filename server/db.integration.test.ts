@@ -1,5 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
+import { migrate } from "drizzle-orm/mysql2/migrator";
+import { readMigrationFiles } from "drizzle-orm/migrator";
+import path from "node:path";
 import { projects, projectVersions, users, storageCleanup, publications } from "../drizzle/schema";
 import type { GameArtifact } from "../shared/game/types";
 const fakeObjects = vi.hoisted(() => ({ files: new Map<string, string>(), sequence: 0 }));
@@ -36,14 +39,22 @@ describe.runIf(Boolean(process.env.ARCANE_TEST_DATABASE_URL))("MySQL version tra
     projectId = (await service.createProjectForUser(ownerId, "Integration", "Disposable CI fixture")).id;
   });
   afterAll(async () => {
-    if (db) {
-      await db.delete(projects).where(eq(projects.id, projectId));
-      await db.delete(users).where(eq(users.id, ownerId)); await db.delete(users).where(eq(users.id, strangerId));
-      for (const key of fakeObjects.files.keys()) await db.delete(storageCleanup).where(eq(storageCleanup.storageKey, key));
-    }
-    await service?.closeDb(); vi.unstubAllEnvs();
+    try {
+      if (db) {
+        if (projectId) await db.delete(projects).where(eq(projects.id, projectId));
+        if (ownerId) await db.delete(users).where(eq(users.id, ownerId));
+        if (strangerId) await db.delete(users).where(eq(users.id, strangerId));
+        for (const key of fakeObjects.files.keys()) await db.delete(storageCleanup).where(eq(storageCleanup.storageKey, key));
+      }
+    } finally { await service?.closeDb(); vi.unstubAllEnvs(); }
   });
-  it("keeps an explicitly granted admin role when updating last sign-in", async () => {
+  it("replays migrations without changing the journal and keeps an explicitly granted admin role", async () => {
+    const migrations = readMigrationFiles({ migrationsFolder: path.resolve("drizzle") });
+    const [before] = await db.$client.promise().query("SELECT hash, created_at FROM __drizzle_migrations ORDER BY created_at");
+    expect(before).toEqual(migrations.map(migration => ({ hash: migration.hash, created_at: migration.folderMillis })));
+    await migrate(db, { migrationsFolder: path.resolve("drizzle") });
+    const [after] = await db.$client.promise().query("SELECT hash, created_at FROM __drizzle_migrations ORDER BY created_at");
+    expect(after).toEqual(before);
     const user = (await db.select().from(users).where(eq(users.id, ownerId)))[0];
     await service.upsertUser({ openId: user.openId, lastSignedIn: new Date() });
     expect((await service.getUserByOpenId(user.openId))!.role).toBe("admin");

@@ -2,7 +2,7 @@
 
 2026-10-10。基于完整代码审查后的优化路线实施，定位是可编辑、可导出的 HTML5 游戏创作平台。当前完成可靠性、生成验证、项目版本与分享发布的主要链路，并搭建稳定运行工具、参数编辑和评测底座。素材生产、真实模型质量跑分、生产环境联调以及后续 3D／多人／世界模型阶段仍需继续实施。
 
-原始审查覆盖、逐模块问题和竞品来源见 [项目审查与优化路线](/mnt/e/code/arcanegame/docs/audit-2026-10-09/ARCANE-项目审查与优化路线.md) 与 [阅读覆盖记录](/mnt/e/code/arcanegame/docs/audit-2026-10-09/阅读覆盖记录.json)。审查覆盖 147 个主要代码、测试和示例文件，共 22,341 行；包括文档配置共 175 个文件、24,038 行。第三方依赖、临时克隆与生成输出不计入逐行覆盖。
+原始审查覆盖、逐模块问题和竞品来源见 [项目审查与优化路线](../audit-2026-10-09/ARCANE-项目审查与优化路线.md) 与 [阅读覆盖记录](../audit-2026-10-09/阅读覆盖记录.json)。审查覆盖 147 个主要代码、测试和示例文件，共 22,341 行；包括文档配置共 175 个文件、24,038 行。第三方依赖、临时克隆与生成输出不计入逐行覆盖。
 
 **产品行为已经改变**
 
@@ -36,36 +36,36 @@ flowchart LR
 
 **关键工程改动**
 
-- [artifact.ts](/mnt/e/code/arcanegame/shared/game/artifact.ts) 统一安全路径、大小和文件校验；最多 40 文件、每文件 400 KB、总计 3 MB UTF-8 内容。SHA-256 覆盖元数据和全部源码，文件展示顺序不影响哈希。
-- [bundle.ts](/mnt/e/code/arcanegame/shared/game/bundle.ts) 使用 HTML 与 JavaScript 解析器处理入口和依赖，支持本地 JS 模块、CSS、SVG、JSON、静态导入及字面量动态导入。拒绝外部依赖、缺失引用与暂不支持的循环；保留经典脚本加载语义，ZIP 增加离线试玩入口。它尚不是任意 npm／TypeScript 工程构建器，也没有完整二进制资产机制。
-- [freegen.ts](/mnt/e/code/arcanegame/server/game/freegen.ts) 拒绝截断／非法 JSON；预算在模型调用前预留，规划、生成、JSON 重试与修复共享默认 64,000 tokens。没有 usage 时按保守上界记账；生成关闭底层自动 POST 重试。SSE 和 tRPC 共用限额，断线与 deadline 传到模型请求。
-- [design.ts](/mnt/e/code/arcanegame/shared/game/design.ts) 保存原始需求、回答、显式数量、控制、创作默认项与修改要求。服务端维护 arcane.design.json；这些记录帮助验收，不能代替证明模型实现正确。
-- [browserRuntime.ts](/mnt/e/code/arcanegame/shared/game/browserRuntime.ts) 提供可选生命周期、输入、缩放、HUD 和清理工具；保护该文件不被模型补丁覆写。仍保留自由创作，不强制所有游戏使用同一种模板。
-- [browserQa.ts](/mnt/e/code/arcanegame/server/game/browserQa.ts) 与 [browserQaWorker.ts](/mnt/e/code/arcanegame/server/game/browserQaWorker.ts) 将游戏执行移入无业务密钥的子进程，限制并发、堆与时长，清理整个自有进程树。实际输入与无输入对照使用独立上下文和虚拟时钟，避免相互推进动画。DOM／绘制变化需要可见像素证据；纯动画、原生焦点、隐藏或全遮挡节点变化和默认滚动均有反例回归。它仍是有限输入检查，不能证明任意游戏的全部行为正确。
-- [versionPersistence.ts](/mnt/e/code/arcanegame/server/versionPersistence.ts) 与 [db.ts](/mnt/e/code/arcanegame/server/db.ts) 将完整版本保存、父项目锁、版本分配、幂等与补偿统一；读取校验 manifest、文件哈希和整个 artifact，并限制读取并发和时长。
-- [access.ts](/mnt/e/code/arcanegame/server/game/access.ts)、私有对象 ACL、签名验证凭证及发布访问控制补齐权限与资源上限。计数器仍为单进程内存实现，不能作为多副本持久计费系统。
-- [validationAccess.ts](/mnt/e/code/arcanegame/server/game/validationAccess.ts) 单独限制浏览器验证：默认每用户每天 60 次、1 个并行任务，全局每天 400 次、2 个并行任务。它不占用模型生成次数和 token 预留；取消仍释放并发，服务关闭后拒绝新任务。
+- [artifact.ts](../../shared/game/artifact.ts) 统一安全路径、大小和文件校验；最多 40 文件、每文件 400 KB、总计 3 MB UTF-8 内容。SHA-256 覆盖元数据和全部源码，文件展示顺序不影响哈希。
+- [bundle.ts](../../shared/game/bundle.ts) 使用 HTML 与 JavaScript 解析器处理入口和依赖，支持本地 JS 模块、CSS、SVG、JSON、静态导入及字面量动态导入。拒绝外部依赖、缺失引用与暂不支持的循环；保留经典脚本加载语义，ZIP 增加离线试玩入口。它尚不是任意 npm／TypeScript 工程构建器，也没有完整二进制资产机制。
+- [freegen.ts](../../server/game/freegen.ts) 拒绝截断／非法 JSON；预算在模型调用前预留，规划、生成、JSON 重试与修复共享默认 64,000 tokens。没有 usage 时按保守上界记账；生成关闭底层自动 POST 重试。SSE 和 tRPC 共用限额，断线与 deadline 传到模型请求。
+- [design.ts](../../shared/game/design.ts) 保存原始需求、回答、显式数量、控制、创作默认项与修改要求。服务端维护 arcane.design.json；这些记录帮助验收，不能代替证明模型实现正确。
+- [browserRuntime.ts](../../shared/game/browserRuntime.ts) 提供可选生命周期、输入、缩放、HUD 和清理工具；保护该文件不被模型补丁覆写。仍保留自由创作，不强制所有游戏使用同一种模板。
+- [browserQa.ts](../../server/game/browserQa.ts) 与 [browserQaWorker.ts](../../server/game/browserQaWorker.ts) 将游戏执行移入无业务密钥的子进程，限制并发、堆与时长，清理整个自有进程树。实际输入与无输入对照使用独立上下文和虚拟时钟，避免相互推进动画。DOM／绘制变化需要可见像素证据；纯动画、原生焦点、隐藏或全遮挡节点变化和默认滚动均有反例回归。它仍是有限输入检查，不能证明任意游戏的全部行为正确。
+- [versionPersistence.ts](../../server/versionPersistence.ts) 与 [db.ts](../../server/db.ts) 将完整版本保存、父项目锁、版本分配、幂等与补偿统一；读取校验 manifest、文件哈希和整个 artifact，并限制读取并发和时长。
+- [access.ts](../../server/game/access.ts)、私有对象 ACL、签名验证凭证及发布访问控制补齐权限与资源上限。计数器仍为单进程内存实现，不能作为多副本持久计费系统。
+- [validationAccess.ts](../../server/game/validationAccess.ts) 单独限制浏览器验证：默认每用户每天 60 次、1 个并行任务，全局每天 400 次、2 个并行任务。它不占用模型生成次数和 token 预留；取消仍释放并发，服务关闭后拒绝新任务。
 - Readiness 在数据库探测完成后重新读取停机状态；认证期间已经断开的请求不会随后启动模型、浏览器或版本保存任务。针对两类准入停机与已发生断线补充 5 条回归。
 - 本地 Monaco ESM 和 workers 按需加载，替换 Markdown 的重依赖入口。最终主入口约 955.50 KB，gzip 283.94 KB；审查时为 1,471.56 KB、gzip 448.50 KB，gzip 下降约 36.7%。Monaco 延迟块仍约 3.98 MB、gzip 1.03 MB；这些是产物体积，不是实测首屏时间。
 - 修复 Journey 引擎和当前源码示例、任务与隐藏事件条件，修复旧 Phaser 模板结束／重开／障碍行为，相关行为回归纳入测试。
 
 **检查结果与证据**
 
-最终统一检查的机器记录见 [verification.json](/mnt/e/code/arcanegame/docs/implementation-2026-10-10/verification.json)。包括类型检查、完整测试、生产构建、真实浏览器基础能力、最终生产网页回归，以及仅安装生产依赖的服务导入和浏览器验证。
+最终统一检查的机器记录见 [verification.json](verification.json)。包括类型检查、完整测试、生产构建、真实浏览器基础能力、最终生产网页回归，以及仅安装生产依赖的服务导入和浏览器验证。
 
 完整测试 **192 通过、4 跳过**；类型检查和前后端生产构建通过。编译后的 QA worker 在仅安装生产依赖、没有 Vite 的环境中跑完 **16 个案例**：15 个实际浏览器案例完成 **60 组输入检查**，另 1 个语法错误案例在构建阶段被阻断。每组单独断言正例与反例结果；这些数字代表验证框架回归覆盖，不代表模型生成游戏的合格率。服务导入与 health HTTP 检查使用 NODE_ENV=test，验证生产依赖完整性，未启动需要真实配置的生产服务。
 
 实际浏览器工作台检查覆盖编辑后预览、ZIP 与源码一致性、重新加载后的草稿恢复、停止／新建游戏后的过期响应、历史与伪造 postMessage、手机布局及按钮真实点击反馈。项目流程检查覆盖 A/B 脏稿隔离、失败与延迟保存、旧生成任务、历史恢复失败、参数的实际效果与范围、发布门槛、Explore／Play／Remix 和撤销。模型、认证和持久化 API 在这些 UI 检查中被替换为受控响应，不能把它们说成真实外部服务联调。
 
-浏览器证据：[项目流程记录](/mnt/e/code/arcanegame/docs/implementation-2026-10-10/project-flow-smoke.json)、[QA 用例记录](/mnt/e/code/arcanegame/docs/implementation-2026-10-10/qa-smoke-results.json)、[桌面工作台](/mnt/e/code/arcanegame/docs/implementation-2026-10-10/workspace-desktop.png)、[手机工作台](/mnt/e/code/arcanegame/docs/implementation-2026-10-10/workspace-mobile.png)、[发布界面](/mnt/e/code/arcanegame/docs/implementation-2026-10-10/project-publish.png)。
+浏览器证据：[项目流程记录](project-flow-smoke.json)、[QA 用例记录](qa-smoke-results.json)、[桌面工作台](workspace-desktop.png)、[手机工作台](workspace-mobile.png)、[发布界面](project-publish.png)。
 
-新增 [CI](/mnt/e/code/arcanegame/.github/workflows/ci.yml) 配置临时 MySQL 8 的迁移与集成测试、类型检查、完整测试、生产构建、Chromium 安装及浏览器回归。本轮本地没有运行远程 CI，4 条实际 MySQL 集成测试仍明确跳过。没有连接业务数据库、执行其 migration、写入外部存储、部署或调用计费模型。
+新增 [CI](../../.github/workflows/ci.yml) 配置临时 MySQL 8 的迁移与集成测试、类型检查、完整测试、生产构建、Chromium 安装及浏览器回归。本轮本地没有运行远程 CI，4 条实际 MySQL 集成测试仍明确跳过。没有连接业务数据库、执行其 migration、写入外部存储、部署或调用计费模型。
 
 **数据库与运行方式**
 
-数据库变更保存在 [drizzle](/mnt/e/code/arcanegame/drizzle/schema.ts)，包括恢复缺失的初始 users migration、版本完整性／幂等状态、发布与分享、清理队列和 [Remix 来源迁移](/mnt/e/code/arcanegame/drizzle/0005_fine_aqueduct.sql)。Readiness 检查必要表与新字段，旧库缺 migration 会拒绝生产启动。
+数据库变更保存在 [drizzle](../../drizzle/schema.ts)，包括恢复缺失的初始 users migration、版本完整性／幂等状态、发布与分享、清理队列和 [Remix 来源迁移](../../drizzle/0005_fine_aqueduct.sql)。Readiness 检查必要表与新字段，旧库缺 migration 会拒绝生产启动。
 
-本地使用 Node.js 22.12+、pnpm 10.4.1。完整配置、迁移与部署说明见 [README](/mnt/e/code/arcanegame/README.md) 和 [.env.example](/mnt/e/code/arcanegame/.env.example)。常用检查为 pnpm check、pnpm test、pnpm build、pnpm qa:smoke；生产网页检查为 node tools/browser-smoke-suite.mjs。评测默认只读取已有游戏，真实模型模式必须显式启用并提供预算。
+本地使用 Node.js 22.12+、pnpm 10.4.1。完整配置、迁移与部署说明见 [README](../../README.md) 和 [.env.example](../../.env.example)。常用检查为 pnpm check、pnpm test、pnpm build、pnpm qa:smoke；生产网页检查为 node tools/browser-smoke-suite.mjs。评测默认只读取已有游戏，真实模型模式必须显式启用并提供预算。
 
 对象存储删除适配器尚未接入实际部署；失败上传记录会保留在 storage_cleanup，配置删除服务后可用 cleanup:storage 处理。生产 QA 还需要独立低权限运行环境、OS 级出口隔离及 CPU／内存限制；当前子进程、CSP 和浏览器请求拦截不能覆盖所有浏览器网络通道，亦不能替代 OS 沙箱。
 
@@ -81,8 +81,8 @@ flowchart LR
 
 对标依据沿用 2026-10-09 审查时核实的官方资料，未进入竞品账户做同题实测，也没有声称 ARCANE 已达到竞品质量或规模。
 
-后续应按依赖推进：先在独立 staging 联调 OAuth、空库／升级迁移、对象签名与清理、浏览器 worker 沙箱；随后跑 [30 项固定评测](/mnt/e/code/arcanegame/evals/game-prompts.json)，补逐游戏验收场景，测出真实合格率、延迟、修复成本和回归率。再依据失败分布建设素材链路与可复用行为组件，完善持久任务、共享限额、账本、内容管理与作品发现。3D、多人与世界模型保留为后续独立实验，避免将尚未验证的能力计入本轮交付。
+后续应按依赖推进：先在独立 staging 联调 OAuth、空库／升级迁移、对象签名与清理、浏览器 worker 沙箱；随后跑 [30 项固定评测](../../evals/game-prompts.json)，补逐游戏验收场景，测出真实合格率、延迟、修复成本和回归率。再依据失败分布建设素材链路与可复用行为组件，完善持久任务、共享限额、账本、内容管理与作品发现。3D、多人与世界模型保留为后续独立实验，避免将尚未验证的能力计入本轮交付。
 
 **本地恢复与版本基线**
 
-工作区原先没有 Git 仓库。本轮交付建立当前已验证实现的本地版本基线，不连接远程、不推送。[早期恢复归档](/mnt/e/code/arcanegame/tmp/recovery/arcane-implementation-start-2026-10-10.tar.gz) 保存于本机且排除凭据与依赖；归档创建时部分代理已开始修改，因此它不是实施前逐字不变的原始快照，不能据此宣称拥有全部变更的 pristine diff。凭据、运行日志、临时目录与第三方依赖均不纳入版本基线。
+工作区原先没有 Git 仓库。本轮交付建立当前已验证实现的本地版本基线，不连接远程、不推送。早期恢复归档（仅保存在本机，不随仓库发布） 保存于本机且排除凭据与依赖；归档创建时部分代理已开始修改，因此它不是实施前逐字不变的原始快照，不能据此宣称拥有全部变更的 pristine diff。凭据、运行日志、临时目录与第三方依赖均不纳入版本基线。

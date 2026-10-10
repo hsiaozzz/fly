@@ -1,7 +1,7 @@
 {
   "status": "passed",
   "mode": "mock model/API + real browser",
-  "testedAt": "2026-10-10T04:05:07.187Z",
+  "testedAt": "2026-10-10T06:10:18.819Z",
   "checks": [
     "A/B dirty draft isolation",
     "config parameters affect actual preview and enforce range",

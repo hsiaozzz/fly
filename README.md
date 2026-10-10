@@ -1,5 +1,9 @@
 # ARCANE
 
+[![Verify ARCANE](https://github.com/hsiaozzz/fly/actions/workflows/ci.yml/badge.svg)](https://github.com/hsiaozzz/fly/actions/workflows/ci.yml)
+
+自然语言创作、可编辑源码、可验证试玩、版本发布与再创作。项目仓库：[hsiaozzz/fly](https://github.com/hsiaozzz/fly)。
+
 ARCANE 将自然语言游戏设计转换为可编辑、可预览的 HTML5 项目，支持版本历史、真实浏览器工程验证和固定版本发布。模型生成成功、浏览器通过、创作者确认玩法是三种不同结论；发布要求后两项同时满足。
 
 ## 本地开发
@@ -7,12 +11,16 @@ ARCANE 将自然语言游戏设计转换为可编辑、可预览的 HTML5 项目
 使用 Node.js 22.12+ 和 pnpm 10.4.1。复制 `.env.example` 为 `.env`，填写数据库、OAuth 和模型/对象存储服务配置。默认品牌 SVG 随项目提供，不需要对象存储。
 
 ```sh
+git clone https://github.com/hsiaozzz/fly.git
+cd fly
+cp .env.example .env
+# 编辑 .env，填写独立开发环境配置
 pnpm install --frozen-lockfile
 pnpm db:migrate
 pnpm dev
 ```
 
-MySQL 使用已提交的 migration。新增 schema 时在开发环境执行 `pnpm db:generate`，审阅生成的 SQL 后再运行 `pnpm db:migrate`。`db:push` 仅保留为 migrate 的兼容别名。生产 migration 前先备份，先在临时空库和现有库副本验证。已恢复缺失的初始 users migration；本次工作没有连接实际业务数据库，CI 已配置临时 MySQL 8.0 服务执行真实迁移和集成验证，本轮本地尚未执行该流程。
+MySQL 使用已提交的 migration。新增 schema 时在开发环境执行 `pnpm db:generate`，审阅生成的 SQL 后再运行 `pnpm db:migrate`。`db:push` 仅保留为 migrate 的兼容别名。生产 migration 前先备份，先在临时空库和现有库副本验证。已恢复缺失的初始 users migration；本次工作没有连接实际业务数据库，CI 已配置临时 MySQL 8.0 服务执行真实迁移和集成验证，实际 CI 结果见上方工作流；本地默认不会连接数据库。
 
 ## 校验与构建
 
@@ -20,10 +28,11 @@ MySQL 使用已提交的 migration。新增 schema 时在开发环境执行 `pnp
 pnpm check
 pnpm test
 pnpm build
+pnpm check:production
 pnpm start
 ```
 
-测试默认全部使用 mock/本地数据，不调用真实 LLM、OAuth、对象存储。数据库集成用例默认跳过，只有显式 `ARCANE_TEST_DATABASE_URL` 才连接一次性测试库，并使用内存对象存储；不要把生产 URL 配到这个变量。CI 执行空库迁移、单元/集成测试和生产构建。`pnpm build` 分离开发 Vite chunk，生产入口不加载 Vite 或开发插件。dev/start 脚本兼容 Windows 与 POSIX shell。
+测试默认全部使用 mock/本地数据，不调用真实 LLM、OAuth、对象存储。数据库集成用例默认跳过，只有显式 `ARCANE_TEST_DATABASE_URL` 才连接一次性测试库，并使用内存对象存储；不要把生产 URL 配到这个变量。CI 执行空库迁移、单元/集成测试、生产构建、编译后的浏览器 QA 和真实网页回归，并保存验证产物。`pnpm build` 分离开发 Vite chunk，生产入口不加载 Vite 或开发插件。`pnpm check:production` 创建不含配置文件的临时副本，仅安装生产依赖，检查服务导入、HTTP health 和编译后的浏览器 QA；需要先执行 `pnpm build` 并安装 Chromium 或设置 `ARCANE_BROWSER_EXECUTABLE`。它验证依赖和基础行为，不替代真实配置下的生产启动。dev/start 脚本兼容 Windows 与 POSIX shell。
 
 服务固定使用 `PORT`；端口占用会失败退出。生产缺少必需配置、签名 secret 少于 32 字符、数据库不可用或 migration 缺失时拒绝启动。`GET /api/health` 检查进程存活；`GET /api/ready` 检查数据库和必要 schema，并在关闭期间返回 503，同时分别返回正在生成与验证的数量。SIGTERM/SIGINT 停止接收新的生成与浏览器验证请求，最多排空 10 秒后关闭连接与数据库池。代理部署时设置准确的 `TRUST_PROXY_HOPS` 和 SSE 超时，生产使用 HTTPS。
 
@@ -58,3 +67,19 @@ pnpm cleanup:storage
 QA worker 隔离子进程、只传白名单环境、禁止网络/下载并设置超时。进程隔离与浏览器路由拦截**不能代替生产 OS 沙箱**；面对公开不可信用户，应将验证 worker 部署为独立低权限容器/用户，启用浏览器沙箱、系统级网络出口限制、内存/CPU配额和只读文件系统，禁用业务凭据，并把公共游戏放到独立无凭据域名。不要给 QA worker 或游戏运行域名业务数据库/云密钥。
 
 本次实施不自动部署、执行业务库 migration、写入外部存储或调用计费模型。真正上线前，需要在配置好的 staging 完成 OAuth、对象签名/删除、真实浏览器和升级 migration 的实际联调。
+
+## 仓库导航
+
+| 目录 | 内容 |
+| --- | --- |
+| `client/` | React 工作台、编辑预览、历史、参数、发布与探索 |
+| `server/` | tRPC/SSE、生成与修复、权限、版本事务与浏览器 QA |
+| `shared/game/` | 游戏快照、离线打包、设计契约、运行工具与参数规范 |
+| `drizzle/` | MySQL schema 与按顺序执行的迁移 |
+| `evals/` | 30 项中文创作请求、评测工具说明 |
+| `tools/` | 开发启动、构建验收、浏览器回归和存储清理 |
+| `docs/` | 原始代码审查、竞品依据及阶段交付记录 |
+
+[贡献说明](CONTRIBUTING.md) · [仓库验证](docs/repository-2026-10-10/README.md) · [路线图](docs/ROADMAP.md) · [安全说明](SECURITY.md) · [第一轮交付](docs/implementation-2026-10-10/ARCANE-第一轮优化交付.md)
+
+仓库沿用原 `fly` 项目的 [Apache License 2.0](LICENSE)。第三方依赖保留各自许可证。仓库不包含运行凭据、依赖目录、临时游戏产物或本机恢复归档。

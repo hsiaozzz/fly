@@ -120,3 +120,6 @@ client/public/__manus__/version.json
 .project-config.json
 .manus-logs/
 .workbuddy/
+
+# CI validation artifacts
+.ci/
