@@ -43,6 +43,13 @@
       "when": 1791601928222,
       "tag": "0005_fine_aqueduct",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1791626114535,
+      "tag": "0006_payment_credits",
+      "breakpoints": true
     }
   ]
 }

@@ -19,9 +19,14 @@ function refresh(counter: Counter, day: number) {
 }
 function deny(message: string): never { throw new TRPCError({ code: "TOO_MANY_REQUESTS", message }); }
 
+/** Only this product allowance may be replaced by a purchased credit. */
+export class GenerationAllowanceError extends TRPCError {
+  constructor() { super({ code: "TOO_MANY_REQUESTS", message: "Daily generation allowance reached." }); }
+}
+
 /** Single-process safety caps shared by every generation entry point. A multi-
  * replica deployment needs a shared atomic limiter before increasing replicas. */
-export function acquireGenerationLease(req: Request, user?: { id: number } | null) {
+export function acquireGenerationLease(req: Request, user?: { id: number } | null, options: { paidCredit?: boolean } = {}) {
   if (draining) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Server is shutting down." });
   const day = Math.floor(Date.now() / 86_400_000);
   const authenticated = Boolean(user && user.id > 0);
@@ -35,11 +40,14 @@ export function acquireGenerationLease(req: Request, user?: { id: number } | nul
   const reserve = tokenReservation();
   const dailyCalls = setting(authenticated ? "GENERATION_USER_DAILY_LIMIT" : "GENERATION_ANON_DAILY_LIMIT", authenticated ? 30 : 3);
   const concurrency = setting(authenticated ? "GENERATION_USER_CONCURRENCY" : "GENERATION_ANON_CONCURRENCY", authenticated ? 2 : 1);
-  if (counter.calls >= dailyCalls) deny(authenticated ? "Daily generation allowance reached." : "Anonymous allowance reached. Sign in to continue.");
   if (counter.active >= concurrency) deny("Another generation is already running.");
   if (globalCounter.active >= setting("GENERATION_GLOBAL_CONCURRENCY", 4)) deny("Generation capacity is temporarily full.");
   if (globalCounter.calls >= setting("GENERATION_GLOBAL_DAILY_LIMIT", 200)
     || globalCounter.tokens + reserve > setting("GENERATION_GLOBAL_DAILY_TOKENS", 2_000_000)) deny("Server generation budget reached. Try again tomorrow.");
+  if (counter.calls >= dailyCalls && !(authenticated && options.paidCredit)) {
+    if (authenticated) throw new GenerationAllowanceError();
+    deny("Anonymous allowance reached. Sign in to continue.");
+  }
   counter.calls++; counter.active++; counter.tokens += reserve;
   globalCounter.calls++; globalCounter.active++; globalCounter.tokens += reserve;
   let released = false;

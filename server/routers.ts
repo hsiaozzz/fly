@@ -7,11 +7,13 @@ import { validateArtifact, normalizeGameFiles } from "../shared/game/artifact";
 import type { BuildReport } from "../shared/game/types";
 import { createProjectForUser, getProjectVersionArchive, listProjectsForUser, listProjectVersions, loadProjectVersion, latestProjectVersion, saveProjectVersion, publishVersion, publishedVersion, revokePublication, explorePublications, remixPublication } from "./db";
 import { freeGenerate, freePatch, type GenerationOptions } from "./game/freegen";
-import { acquireGenerationLease } from "./game/access";
+import type { FreeGenResult } from "../shared/game/types";
+import { acquireBilledGenerationLease } from "./game/billedAccess";
 import { acquireValidationLease } from "./game/validationAccess";
 import { issueValidationReceipt, verifyValidationReceipt } from "./game/validationReceipt";
 import { validateInBrowser } from "./game/browserQa";
 import type { TrpcContext } from "./_core/context";
+import { billingRouter } from "./payments/routes";
 
 const artifactSchema = z.unknown().transform((input, ctx) => {
   const checked = validateArtifact(input);
@@ -42,11 +44,18 @@ async function withRequestAbort<T>(ctx: TrpcContext, run: (options: GenerationOp
   }
   finally { clearTimeout(deadline); ctx.res.removeListener?.("close", disconnected); ctx.req.removeListener?.("aborted", disconnected); }
 }
-async function withLease<T>(ctx: TrpcContext, run: (options: GenerationOptions) => Promise<T>) {
-  const lease = acquireGenerationLease(ctx.req, ctx.user);
-  let used = 0;
-  try { return await withRequestAbort(ctx, options => run({ ...options, onUsage: tokens => { used += tokens; lease.recordUsage(used); } })); }
-  finally { lease.release(); }
+async function withLease(ctx: TrpcContext, request: unknown, run: (options: GenerationOptions) => Promise<FreeGenResult>) {
+  return withRequestAbort(ctx, async options => {
+    const lease = await acquireBilledGenerationLease(ctx.req, ctx.user, request);
+    let used = 0;
+    try {
+      options.signal?.throwIfAborted();
+      const result = await run({ ...options, onUsage: tokens => { used += tokens; lease.recordUsage(used); } });
+      options.signal?.throwIfAborted();
+      if (result?.artifact && result.build?.status !== "failed") await lease.success(options.signal);
+      return result;
+    } finally { await lease.release(options.signal?.aborted ? "aborted" : "failed"); }
+  });
 }
 async function withValidationLease<T>(ctx: TrpcContext, run: (options: GenerationOptions) => Promise<T>) {
   const lease = acquireValidationLease(ctx.user?.id ?? 0);
@@ -56,13 +65,14 @@ async function withValidationLease<T>(ctx: TrpcContext, run: (options: Generatio
 
 export const appRouter = router({
   system: systemRouter,
+  billing: billingRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => { ctx.res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(ctx.req), maxAge: -1 }); return { success: true } as const; }),
   }),
   game: router({
-    generate: publicProcedure.input(z.object({ prompt: z.string().min(2).max(8000) })).mutation(({ ctx, input }) => withLease(ctx, options => freeGenerate(input.prompt, undefined, options))),
-    patch: publicProcedure.input(z.object({ prompt: z.string().min(2).max(8000), files: filesSchema })).mutation(({ ctx, input }) => withLease(ctx, options => freePatch(input.files, input.prompt, options))),
+    generate: publicProcedure.input(z.object({ prompt: z.string().min(2).max(8000) })).mutation(({ ctx, input }) => withLease(ctx, { mode: "generate", ...input }, options => freeGenerate(input.prompt, undefined, options))),
+    patch: publicProcedure.input(z.object({ prompt: z.string().min(2).max(8000), files: filesSchema })).mutation(({ ctx, input }) => withLease(ctx, { mode: "patch", ...input }, options => freePatch(input.files, input.prompt, options))),
     validateArtifact: protectedProcedure.input(z.object({ artifact: artifactSchema })).mutation(({ ctx, input }) => withValidationLease(ctx, async options => {
       const report = await validateInBrowser(input.artifact, { signal: options.signal });
       return { report, receipt: await issueValidationReceipt(input.artifact, report) ?? undefined };

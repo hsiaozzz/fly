@@ -1,0 +1,41 @@
+{
+  "testedAt": "2026-10-10T10:19:06.230097+00:00",
+  "status": "passed",
+  "mode": "fresh production frontend build; real Edge; controlled model, authentication, project, publication, and capability API fixtures",
+  "checks": {
+    "typescript": "passed",
+    "frontendProductionBuild": "passed",
+    "workspaceSmoke": "passed",
+    "projectSmoke": "passed",
+    "workspaceLayoutSmoke": "passed",
+    "gitDiffWhitespace": "passed"
+  },
+  "frontendEntry": {
+    "bytesApprox": 992880,
+    "gzipBytesApprox": 303040,
+    "measurement": "Vite build output, not a page-load timing"
+  },
+  "screenshots": [
+    "home-desktop.png",
+    "home-mobile.png",
+    "home-compact.png",
+    "layout-workspace-desktop.png",
+    "layout-workspace-mobile.png",
+    "layout-workspace-compact.png",
+    "source-desktop.png",
+    "source-compact.png",
+    "project-publish.png",
+    "project-mobile.png",
+    "offline-example-mobile.png"
+  ],
+  "reports": [
+    "project-flow-smoke.json",
+    "workspace-layout-results.json"
+  ],
+  "limitations": [
+    "No real model, OAuth, business database, object storage or payment provider used by these three UI suites.",
+    "Layout evidence applies to the local preset and authored fixtures; arbitrary generated games require their own acceptance checks.",
+    "Stitch was not used to produce this interface.",
+    "Payment suite is owned and executed separately."
+  ]
+}

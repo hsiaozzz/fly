@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { Express, Request, Response } from "express";
 import { z } from "zod";
 import { clarifyRequest, createGenerationJobOptions, freeGenerate, freePatch } from "./freegen";
-import { acquireGenerationLease } from "./access";
+import { acquireBilledGenerationLease } from "./billedAccess";
 import { sdk } from "../_core/sdk";
 import { HttpError } from "../../shared/_core/errors";
 import { validateArtifact, normalizeGameFiles } from "../../shared/game/artifact";
@@ -30,7 +30,7 @@ export function registerGameStreamRoute(app: Express): void {
     const { prompt, answers, mode, projectId, baseVersionId } = input.data;
     const runId = input.data.runId ?? randomUUID();
     const abort = new AbortController();
-    let lease: ReturnType<typeof acquireGenerationLease> | undefined;
+    let lease: Awaited<ReturnType<typeof acquireBilledGenerationLease>> | undefined;
     let heartbeat: ReturnType<typeof setInterval> | undefined;
     const deadline = setTimeout(() => abort.abort(new DOMException("生成任务超时，请缩小请求后重试。", "TimeoutError")), 240_000);
     const disconnect = () => { if (!res.writableEnded) abort.abort(new DOMException("任务已取消。", "AbortError")); };
@@ -49,7 +49,8 @@ export function registerGameStreamRoute(app: Express): void {
       try { existing = mode === "patch" ? artifactCheck?.artifact?.files ?? normalizeGameFiles(input.data.existing) : undefined; }
       catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : "修改需要有效的源码快照。" }); return; }
       abort.signal.throwIfAborted();
-      lease = acquireGenerationLease(req, user);
+      lease = await acquireBilledGenerationLease(req, user, { mode, prompt, answers, artifact: artifactCheck?.artifact, existing });
+      abort.signal.throwIfAborted();
       res.status(200).set({ "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", Connection: "keep-alive", "X-Accel-Buffering": "no" });
       res.flushHeaders();
       heartbeat = setInterval(() => { if (!res.destroyed && !res.writableEnded) res.write(": heartbeat\n\n"); }, 15_000);
@@ -66,10 +67,12 @@ export function registerGameStreamRoute(app: Express): void {
         if (decision.needClarification) { emit(res, "clarify", { intent: decision.intent, questions: decision.questions, runId }); return; }
         const result = await freeGenerate(prompt, answers, { ...options, decision });
         abort.signal.throwIfAborted();
+        if (result.artifact && result.build?.status !== "failed") await lease.success(abort.signal);
         emit(res, "complete", { ...result, runId, projectId, baseVersionId });
       } else {
         const result = await freePatch(existing!, prompt, options);
         abort.signal.throwIfAborted();
+        if (result.artifact && result.build?.status !== "failed") await lease.success(abort.signal);
         emit(res, "complete", { ...result, runId, projectId, baseVersionId });
       }
     } catch (error) {
@@ -84,7 +87,8 @@ export function registerGameStreamRoute(app: Express): void {
       clearTimeout(deadline);
       if (heartbeat) clearInterval(heartbeat);
       res.removeListener("close", disconnect);
-      lease?.release();
+      try { await lease?.release(abort.signal.aborted ? "aborted" : "failed"); }
+      catch (error) { logError("generation.credit.release.failed", error); }
       if (!res.destroyed && !res.writableEnded) res.end();
     }
   });

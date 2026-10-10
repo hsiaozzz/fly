@@ -3,10 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TrpcContext } from "./_core/context";
 import { resetGenerationLimitsForTests, generationCapacity } from "./game/access";
 import { resetValidationLimitsForTests, validationCapacity } from "./game/validationAccess";
-const mocked = vi.hoisted(() => ({ generate: vi.fn(), patch: vi.fn(), save: vi.fn(), verify: vi.fn(), latest: vi.fn(), validate: vi.fn() }));
+const mocked = vi.hoisted(() => ({ generate: vi.fn(), patch: vi.fn(), save: vi.fn(), verify: vi.fn(), latest: vi.fn(), validate: vi.fn(), catalog: vi.fn(), reserve: vi.fn(), settle: vi.fn() }));
 vi.mock("./game/freegen", () => ({ freeGenerate: mocked.generate, freePatch: mocked.patch }));
 vi.mock("./game/browserQa", () => ({ validateInBrowser: mocked.validate }));
 vi.mock("./game/validationReceipt", () => ({ issueValidationReceipt: vi.fn(), verifyValidationReceipt: mocked.verify }));
+vi.mock("./payments/service", () => ({ getPaymentService: () => ({ catalog: mocked.catalog, reserveGeneration: mocked.reserve, settleGeneration: mocked.settle }) }));
 vi.mock("./db", () => ({ saveProjectVersion: mocked.save, latestProjectVersion: mocked.latest, createProjectForUser: vi.fn(), getProjectVersionArchive: vi.fn(), listProjectsForUser: vi.fn(), listProjectVersions: vi.fn(), loadProjectVersion: vi.fn(), publishVersion: vi.fn(), publishedVersion: vi.fn(), revokePublication: vi.fn(), explorePublications: vi.fn(), remixPublication: vi.fn() }));
 import { appRouter } from "./routers";
 const artifact = { title: "Test", description: "", controls: [], files: [{ path: "index.html", language: "html" as const, content: "<canvas></canvas>" }] };
@@ -15,7 +16,7 @@ function context(authenticated = false) {
   const res = Object.assign(new EventEmitter(), { writableEnded: false, destroyed: false });
   return { req, res, ctx: { req, res, user: authenticated ? { id: 1 } : null } as unknown as TrpcContext };
 }
-beforeEach(() => { vi.resetAllMocks(); resetGenerationLimitsForTests(); resetValidationLimitsForTests(); mocked.verify.mockResolvedValue(false); mocked.save.mockResolvedValue({ version: 1 }); mocked.validate.mockResolvedValue({ status: "unverified" }); });
+beforeEach(() => { vi.resetAllMocks(); resetGenerationLimitsForTests(); resetValidationLimitsForTests(); mocked.verify.mockResolvedValue(false); mocked.save.mockResolvedValue({ version: 1 }); mocked.validate.mockResolvedValue({ status: "unverified" }); mocked.catalog.mockReturnValue({ configured: false }); mocked.reserve.mockResolvedValue({}); mocked.settle.mockResolvedValue({}); });
 afterEach(() => vi.unstubAllEnvs());
 describe("RPC security and cancellation", () => {
   it("requires authentication for persisted versions and server browser validation", async () => {
@@ -92,5 +93,17 @@ describe("RPC security and cancellation", () => {
     await expect(caller.game.validateArtifact({ artifact })).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" });
     expect(mocked.validate).toHaveBeenCalledTimes(1);
     await caller.game.generate({ prompt: "Create a game" }); expect(mocked.generate).toHaveBeenCalledTimes(1);
+  });
+  it.each(["generate", "patch"] as const)("uses the purchased ledger for RPC %s and refunds a failed source build", async mode => {
+    vi.stubEnv("GENERATION_USER_DAILY_LIMIT", "0"); mocked.catalog.mockReturnValue({ configured: true });
+    const call = appRouter.createCaller(context(true).ctx).game;
+    const generator = mode === "generate" ? mocked.generate : mocked.patch;
+    generator.mockResolvedValueOnce({ artifact, build: { status: "pending" } }).mockResolvedValueOnce({ artifact, build: { status: "failed" } });
+    const input = { prompt: "Create a game", files: artifact.files };
+    await call[mode](input);
+    expect(mocked.settle).toHaveBeenLastCalledWith(1, expect.any(String), "success", { signal: expect.any(AbortSignal) });
+    await call[mode](input);
+    expect(mocked.settle).toHaveBeenLastCalledWith(1, expect.any(String), "failed");
+    expect(mocked.reserve).toHaveBeenCalledTimes(2); expect(generationCapacity().active).toBe(0);
   });
 });

@@ -77,6 +77,8 @@ jobs:
             docs/implementation-2026-10-10/project-*.png
             docs/local-preview-2026-10-10/ui/*.png
             docs/local-preview-2026-10-10/ui/workspace-layout-results.json
+            docs/ui-payments-2026-10-10/**/*.png
+            docs/ui-payments-2026-10-10/**/*.json
           include-hidden-files: true
           retention-days: 14
           if-no-files-found: warn

@@ -198,6 +198,57 @@ async function run() {
   }
 
   if (!baseUrl) throw new Error("没有可用的生产前端预览地址。");
+  const homePage = await context.newPage();
+  homePage.on("pageerror", error => errors.push(error.message));
+  await homePage.goto(baseUrl);
+  await homePage.getByRole("heading", { name: /你的下一个游戏/ }).waitFor();
+  await homePage.getByText("本地工作台可用", { exact: true }).waitFor();
+  assert.equal(
+    await homePage.locator(".monaco-editor").count(),
+    0,
+    "首页不加载源码编辑器"
+  );
+  assert.equal(
+    await homePage.locator('iframe[title="游戏隔离预览"]').count(),
+    0,
+    "首页不展示空试玩框"
+  );
+  await mkdir("docs/ui-payments-2026-10-10", { recursive: true });
+  await homePage.screenshot({
+    path: "docs/ui-payments-2026-10-10/home-desktop.png",
+    fullPage: true,
+  });
+  await homePage.setViewportSize({ width: 390, height: 844 });
+  await homePage.screenshot({
+    path: "docs/ui-payments-2026-10-10/home-mobile.png",
+    fullPage: true,
+  });
+  await homePage.setViewportSize({ width: 330, height: 430 });
+  const homeLayout = await homePage.evaluate(() => ({
+    viewport: innerWidth,
+    document: document.documentElement.scrollWidth,
+    body: document.body.scrollWidth,
+  }));
+  assert.ok(
+    homeLayout.document <= homeLayout.viewport &&
+      homeLayout.body <= homeLayout.viewport,
+    "330px 首页无横向溢出"
+  );
+  for (const action of ["体验示例", "创作额度", "New Game"]) {
+    const rect = await homePage
+      .locator(".header-actions")
+      .getByRole("button", { name: action, exact: true })
+      .boundingBox();
+    assert.ok(
+      rect.x >= 0 && rect.x + rect.width <= 330,
+      `${action} 在窄手机可达`
+    );
+  }
+  await homePage.screenshot({
+    path: "docs/ui-payments-2026-10-10/home-compact.png",
+    fullPage: true,
+  });
+  await homePage.close();
   await page.goto(baseUrl);
   await page
     .getByRole("heading", { name: authorArtifact.title, exact: true })
@@ -232,17 +283,61 @@ async function run() {
     .frameLocator('iframe[title="游戏隔离预览"]')
     .locator("#game-canvas")
     .waitFor();
+  const persistentFrame = await page
+    .locator('iframe[title="游戏隔离预览"]')
+    .elementHandle();
+  const modeLayouts = {};
+  for (const mode of [/^Files/, "参数", "QA", "游戏文档", "试玩"]) {
+    await page
+      .getByRole("button", { name: mode, exact: typeof mode === "string" })
+      .click();
+    assert.equal(
+      await persistentFrame.evaluate(
+        element =>
+          element.isConnected &&
+          element === document.querySelector('iframe[title="游戏隔离预览"]')
+      ),
+      true,
+      "模式切换保持同一游戏iframe"
+    );
+    modeLayouts[String(mode)] = await readPreviewLayout();
+    if (mode instanceof RegExp)
+      await page.screenshot({
+        path: "docs/ui-payments-2026-10-10/source-desktop.png",
+        fullPage: true,
+      });
+  }
   const desktop = await readPreviewLayout();
-  await mkdir("docs/local-preview-2026-10-10/ui", { recursive: true });
+  await mkdir("docs/ui-payments-2026-10-10", { recursive: true });
   await page.screenshot({
-    path: "docs/local-preview-2026-10-10/ui/layout-workspace-desktop.png",
+    path: "docs/ui-payments-2026-10-10/layout-workspace-desktop.png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "手机预览", exact: true }).click();
   const mobile = await readPreviewLayout();
   await page.screenshot({
-    path: "docs/local-preview-2026-10-10/ui/layout-workspace-mobile.png",
+    path: "docs/ui-payments-2026-10-10/layout-workspace-mobile.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 330, height: 430 });
+  const compact = await readPreviewLayout();
+  await page.getByRole("button", { name: /^Files/ }).click();
+  const compactSource = await readPreviewLayout();
+  await page.locator(".monaco-editor textarea").first().waitFor();
+  await page.screenshot({
+    path: "docs/ui-payments-2026-10-10/source-compact.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "试玩", exact: true }).click();
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth
+    ),
+    "330px 工作台无横向溢出"
+  );
+  await page.screenshot({
+    path: "docs/ui-payments-2026-10-10/layout-workspace-compact.png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -255,13 +350,17 @@ async function run() {
   assert.deepEqual(errors, [], "真实工作台布局没有未捕获错误");
   assert.deepEqual(forbiddenRequests, [], "布局验证没有模型或云端写入请求");
   await writeFile(
-    "docs/local-preview-2026-10-10/ui/workspace-layout-results.json",
+    "docs/ui-payments-2026-10-10/workspace-layout-results.json",
     JSON.stringify(
       {
         source: "offline preset and authored layout browser fixtures",
         authored,
         desktop,
         mobile,
+        compact,
+        compactSource,
+        modeLayouts,
+        homeLayout,
         returnedDesktop,
         forbiddenRequests,
         errors,

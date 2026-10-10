@@ -152,6 +152,7 @@ try {
   await page
     .getByRole("button", { name: "停止", exact: true })
     .waitFor({ state: "hidden" });
+  await page.getByRole("button", { name: /^Files/ }).click();
   await page
     .locator(".monaco-editor textarea")
     .first()
@@ -228,12 +229,12 @@ try {
     .frameLocator('iframe[title="游戏隔离预览"]')
     .getByRole("button", { name: "编辑后按钮", exact: true })
     .waitFor();
-  await mkdir("docs/implementation-2026-10-10", { recursive: true });
+  await mkdir("docs/ui-payments-2026-10-10", { recursive: true });
   await page
     .locator('iframe[title="游戏隔离预览"]')
     .evaluate(element => element.scrollIntoView({ block: "center" }));
   await page.screenshot({
-    path: "docs/implementation-2026-10-10/workspace-desktop.png",
+    path: "docs/ui-payments-2026-10-10/workspace-desktop.png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -252,12 +253,13 @@ try {
     .getByRole("button", { name: "已点击", exact: true })
     .waitFor({ timeout: 5000 });
   await page.screenshot({
-    path: "docs/implementation-2026-10-10/workspace-mobile.png",
+    path: "docs/ui-payments-2026-10-10/workspace-mobile.png",
     fullPage: true,
   });
   capabilityMode = "missing";
   await page.reload();
   await page.getByText("本地工作台可用", { exact: true }).waitFor();
+  await page.getByRole("button", { name: /^Files/ }).click();
   const loginCookies = (await context.cookies()).filter(cookie =>
     /oauth_state/.test(cookie.name)
   );
@@ -298,6 +300,7 @@ try {
     })
     .waitFor();
   assert.equal(generationCalls, beforeDisabledAction);
+  await page.getByRole("button", { name: /^Files/ }).click();
   await page
     .locator(".monaco-editor textarea")
     .first()
@@ -377,9 +380,7 @@ try {
   await examplePreview
     .getByRole("button", { name: "开始游戏", exact: true })
     .click();
-  await examplePreview
-    .locator('#game-status[data-state="playing"]')
-    .waitFor();
+  await examplePreview.locator('#game-status[data-state="playing"]').waitFor();
   const exampleFrame = await (
     await page.locator('iframe[title="游戏隔离预览"]').elementHandle()
   ).contentFrame();
@@ -441,11 +442,12 @@ try {
     .click();
   assert.equal(await examplePreview.locator("#caught").textContent(), "0");
   assert.equal(await examplePreview.locator("#missed").textContent(), "0");
-  await mkdir("docs/local-preview-2026-10-10/ui", { recursive: true });
+  await mkdir("docs/ui-payments-2026-10-10", { recursive: true });
   await page.screenshot({
-    path: "docs/local-preview-2026-10-10/ui/offline-example-mobile.png",
+    path: "docs/ui-payments-2026-10-10/offline-example-mobile.png",
     fullPage: true,
   });
+  await page.getByRole("button", { name: /^Files/ }).click();
   await page.locator(".monaco-editor textarea").first().waitFor();
   await page.locator(".monaco-editor .view-lines").first().click();
   // A normal title edit avoids treating a multiline HTML paste as bracket typing.

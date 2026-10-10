@@ -2,7 +2,7 @@ import { and, desc, eq, lt, isNull, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { TRPCError } from "@trpc/server";
 import { randomUUID, randomBytes } from "node:crypto";
-import { builds, gameFiles, messages, projects, projectVersions, publications, storageCleanup, type InsertUser, users } from "../drizzle/schema";
+import { builds, creditAccounts, creditLedger, generationCreditReservations, paymentNotifications, paymentOrders, gameFiles, messages, projects, projectVersions, publications, storageCleanup, type InsertUser, users } from "../drizzle/schema";
 import type { BuildReport, GameArtifact, GameFile } from "../shared/game/types";
 import { validateArtifact, artifactDigest } from "../shared/game/artifact";
 import { storageReadText, storageDelete, storagePut } from "./storage";
@@ -34,6 +34,11 @@ export async function checkDatabaseReadiness() {
     db.select({ confirmedGameplay: publications.confirmedGameplay, shareTokenHash: publications.shareTokenHash, revokedAt: publications.revokedAt }).from(publications).limit(1),
     db.select({ report: builds.report }).from(builds).limit(1),
     db.select({ id: storageCleanup.id }).from(storageCleanup).limit(1),
+    db.select({ id: paymentOrders.id, appId: paymentOrders.appId, status: paymentOrders.status }).from(paymentOrders).limit(1),
+    db.select({ userId: creditAccounts.userId, environment: creditAccounts.environment, appId: creditAccounts.appId, available: creditAccounts.available, reserved: creditAccounts.reserved }).from(creditAccounts).limit(1),
+    db.select({ eventKey: creditLedger.eventKey }).from(creditLedger).limit(1),
+    db.select({ eventKey: paymentNotifications.eventKey }).from(paymentNotifications).limit(1),
+    db.select({ taskId: generationCreditReservations.taskId, state: generationCreditReservations.state }).from(generationCreditReservations).limit(1),
   ]);
 }
 export async function upsertUser(user: InsertUser): Promise<void> {

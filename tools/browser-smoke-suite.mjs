@@ -79,9 +79,9 @@ async function run(filename, baseUrl) {
 }
 
 try {
-  const baseUrl = server.resolvedUrls?.local.find(
-    url => new URL(url).hostname === "127.0.0.1"
-  )?.replace(/\/+$/, "");
+  const baseUrl = server.resolvedUrls?.local
+    .find(url => new URL(url).hostname === "127.0.0.1")
+    ?.replace(/\/+$/, "");
   if (!baseUrl) throw new Error("Vite did not expose its own preview URL.");
   const response = await fetch(baseUrl, { signal: AbortSignal.timeout(5000) });
   if (!response.ok)
@@ -90,6 +90,7 @@ try {
   await run("tools/workspace-smoke.mjs", baseUrl);
   await run("tools/project-smoke.mjs", baseUrl);
   await run("tools/workspace-layout-smoke.mjs", baseUrl);
+  await run("tools/payment-smoke.mjs", baseUrl);
 } finally {
   process.removeListener("SIGINT", stop);
   process.removeListener("SIGTERM", stop);

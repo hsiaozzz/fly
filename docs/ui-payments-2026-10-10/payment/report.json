@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "mode": "mock payment APIs and checkout + real browser",
+  "realPayments": 0,
+  "modelCalls": 0,
+  "chromiumSandbox": true,
+  "testedAt": "2026-10-10T10:26:22.810Z",
+  "scenarios": [
+    {
+      "name": "guest cannot purchase or query private billing data",
+      "status": "passed",
+      "createRequests": 0,
+      "orderQueries": 0,
+      "balanceQueries": 0
+    },
+    {
+      "name": "unconfigured service and missing balance remain unavailable",
+      "status": "passed",
+      "createRequests": 0,
+      "orderQueries": 0,
+      "balanceQueries": 1
+    },
+    {
+      "name": "disabled new sales preserve existing balance and order reconciliation",
+      "status": "passed",
+      "createRequests": 0,
+      "orderQueries": 1,
+      "balanceQueries": 2
+    },
+    {
+      "name": "return URL, local storage and forged messages cannot confirm payment",
+      "status": "passed",
+      "createRequests": 0,
+      "orderQueries": 1,
+      "balanceQueries": 1
+    },
+    {
+      "name": "server-priced order, duplicate-click guard, pending then confirmed paid",
+      "status": "passed",
+      "createRequests": 1,
+      "orderQueries": 3,
+      "balanceQueries": 2
+    },
+    {
+      "name": "blocked purchase popup offers a protected checkout link",
+      "status": "passed",
+      "createRequests": 1,
+      "orderQueries": 1,
+      "balanceQueries": 1
+    },
+    {
+      "name": "creation failures reuse an idempotency key and expose no private detail",
+      "status": "passed",
+      "createRequests": 2,
+      "orderQueries": 1,
+      "balanceQueries": 1
+    },
+    {
+      "name": "closed order never grants credits",
+      "status": "passed",
+      "createRequests": 0,
+      "orderQueries": 1,
+      "balanceQueries": 1
+    },
+    {
+      "name": "expired order stops automatic reconciliation and can be rechecked",
+      "status": "passed",
+      "createRequests": 0,
+      "orderQueries": 2,
+      "balanceQueries": 1
+    },
+    {
+      "name": "failed query remains unconfirmed and recovers through server recheck",
+      "status": "passed",
+      "createRequests": 0,
+      "orderQueries": 2,
+      "balanceQueries": 1
+    },
+    {
+      "name": "untrusted checkout URL cannot open an external payment page",
+      "status": "passed",
+      "createRequests": 1,
+      "orderQueries": 0,
+      "balanceQueries": 1
+    },
+    {
+      "name": "invalid return order id sends no order query",
+      "status": "passed",
+      "createRequests": 0,
+      "orderQueries": 0,
+      "balanceQueries": 1
+    },
+    {
+      "name": "account switch rejects late account A order and private cached balance",
+      "status": "passed",
+      "createRequests": 0,
+      "orderQueries": 3,
+      "balanceQueries": 2
+    },
+    {
+      "name": "billing dialog layout and unmount 1440x1000",
+      "status": "passed",
+      "createRequests": 1,
+      "orderQueries": 2,
+      "balanceQueries": 2
+    },
+    {
+      "name": "billing dialog layout and unmount 390x844",
+      "status": "passed",
+      "createRequests": 1,
+      "orderQueries": 2,
+      "balanceQueries": 2
+    },
+    {
+      "name": "billing dialog layout and unmount 330x430",
+      "status": "passed",
+      "createRequests": 1,
+      "orderQueries": 2,
+      "balanceQueries": 2
+    }
+  ]
+}

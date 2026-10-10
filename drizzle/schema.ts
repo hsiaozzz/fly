@@ -1,4 +1,4 @@
-import { index, int, json, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { index, int, json, mysqlEnum, mysqlTable, primaryKey, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -90,3 +90,70 @@ export const publications = mysqlTable("publications", {
   revokedAt: timestamp("revokedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, table => [index("publications_visibility_created_idx").on(table.visibility, table.createdAt)]);
+
+// Financial records deliberately restrict user deletion rather than cascading.
+export const paymentOrders = mysqlTable("payment_orders", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "restrict" }),
+  requestId: varchar("requestId", { length: 64 }).notNull(),
+  packageId: varchar("packageId", { length: 40 }).notNull(),
+  packageName: varchar("packageName", { length: 80 }).notNull(),
+  credits: int("credits", { unsigned: true }).notNull(),
+  amountFen: int("amountFen", { unsigned: true }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("CNY"),
+  environment: mysqlEnum("environment", ["sandbox", "production"]).notNull(),
+  appId: varchar("appId", { length: 32 }).notNull(),
+  sellerId: varchar("sellerId", { length: 30 }).notNull(),
+  status: mysqlEnum("status", ["pending", "paid", "closed"]).notNull().default("pending"),
+  tradeNo: varchar("tradeNo", { length: 64 }),
+  expiresAt: timestamp("expiresAt").notNull(),
+  paidAt: timestamp("paidAt"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow().onUpdateNow(),
+}, table => [uniqueIndex("payment_order_request_unique").on(table.userId, table.environment, table.appId, table.requestId),
+  uniqueIndex("payment_order_trade_unique").on(table.environment, table.appId, table.tradeNo),
+  index("payment_order_user_created_idx").on(table.userId, table.createdAt)]);
+
+export const creditAccounts = mysqlTable("credit_accounts", {
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "restrict" }),
+  environment: mysqlEnum("environment", ["sandbox", "production"]).notNull(),
+  appId: varchar("appId", { length: 32 }).notNull(),
+  available: int("available", { unsigned: true }).notNull().default(0),
+  reserved: int("reserved", { unsigned: true }).notNull().default(0),
+  consumed: int("consumed", { unsigned: true }).notNull().default(0),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow().onUpdateNow(),
+}, table => [primaryKey({ columns: [table.userId, table.environment, table.appId] })]);
+export const creditLedger = mysqlTable("credit_ledger", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "restrict" }),
+  environment: mysqlEnum("environment", ["sandbox", "production"]).notNull(),
+  appId: varchar("appId", { length: 32 }).notNull(),
+  eventKey: varchar("eventKey", { length: 128 }).notNull(),
+  kind: mysqlEnum("kind", ["purchase", "reserve", "consume", "release"]).notNull(),
+  referenceId: varchar("referenceId", { length: 64 }).notNull(),
+  availableDelta: int("availableDelta").notNull(),
+  reservedDelta: int("reservedDelta").notNull(),
+  consumedDelta: int("consumedDelta").notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+}, table => [uniqueIndex("credit_ledger_event_unique").on(table.eventKey), index("credit_ledger_user_created_idx").on(table.userId, table.environment, table.appId, table.createdAt)]);
+export const paymentNotifications = mysqlTable("payment_notifications", {
+  eventKey: varchar("eventKey", { length: 64 }).primaryKey(),
+  orderId: varchar("orderId", { length: 36 }).notNull().references(() => paymentOrders.id, { onDelete: "restrict" }),
+  payloadHash: varchar("payloadHash", { length: 64 }).notNull(),
+  status: varchar("status", { length: 32 }).notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+export const generationCreditReservations = mysqlTable("generation_credit_reservations", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "restrict" }),
+  environment: mysqlEnum("environment", ["sandbox", "production"]).notNull(),
+  appId: varchar("appId", { length: 32 }).notNull(),
+  taskId: varchar("taskId", { length: 64 }).notNull(),
+  requestHash: varchar("requestHash", { length: 64 }).notNull(),
+  state: mysqlEnum("state", ["reserved", "consumed", "released"]).notNull(),
+  outcome: mysqlEnum("outcome", ["success", "failed", "aborted", "expired"]),
+  expiresAt: timestamp("expiresAt").notNull(),
+  settledAt: timestamp("settledAt"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+}, table => [uniqueIndex("generation_credit_task_unique").on(table.userId, table.environment, table.appId, table.taskId),
+  index("generation_credit_user_expiry_idx").on(table.userId, table.environment, table.appId, table.state, table.expiresAt)]);

@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-10",
+  "status": "local checks passed",
+  "typescript": "passed",
+  "productionBuild": "passed",
+  "unitTests": {
+    "numTotalTests": 394,
+    "numPassedTests": 378,
+    "numFailedTests": 0,
+    "numPendingTests": 16
+  },
+  "skippedLocally": {
+    "disposableProjectMySql": 4,
+    "disposablePaymentMySql": 10,
+    "browserWorker": 2
+  },
+  "browserUiSuites": [
+    "workspace",
+    "project",
+    "layout",
+    "payment"
+  ],
+  "paymentBrowserScenarioCount": 16,
+  "realPayments": 0,
+  "newPaidModelCalls": 0,
+  "designSource": "repository React/CSS/local SVG; Stitch initialization blocked",
+  "merchantReadiness": "not configured; live purchases disabled",
+  "limitations": [
+    "No real merchant payment verified",
+    "Existing model credentials returned HTTP 401",
+    "No refund workflow",
+    "Post-commit network loss requires ledger reconciliation; persistent generation result recovery is pending"
+  ]
+}

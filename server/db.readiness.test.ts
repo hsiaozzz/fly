@@ -24,16 +24,18 @@ describe("database migration readiness", () => {
   it("checks new tables and columns with real Drizzle SQL and closes its pool", async () => {
     await checkDatabaseReadiness();
     const statements = mocked.query.mock.calls.map(([query]) => query.sql as string);
-    expect(statements).toHaveLength(6);
+    expect(statements).toHaveLength(11);
     expect(statements[0]).toBe("SELECT 1");
     for (const field of ["`artifactHash`", "`requestId`", "`requestHash`", "`sourcePublicationId`", "`confirmedGameplay`", "`shareTokenHash`", "`revokedAt`", "`report`"])
       expect(statements.some(sql => sql.includes(field))).toBe(true);
     expect(statements.some(sql => sql.includes("from `storage_cleanup`"))).toBe(true);
+    for (const table of ["payment_orders", "credit_accounts", "credit_ledger", "payment_notifications", "generation_credit_reservations"])
+      expect(statements.some(sql => sql.includes(`from \`${table}\``))).toBe(true);
     expect(mocked.createPool).toHaveBeenCalledWith({ connection: expect.objectContaining({ connectionLimit: 10, queueLimit: 50, connectTimeout: 5000 }) });
     await closeDb(); expect(mocked.close).toHaveBeenCalledTimes(1);
     await closeDb(); expect(mocked.close).toHaveBeenCalledTimes(1);
   });
-  it.each(["sourcePublicationId", "confirmedGameplay", "requestHash", "storage_cleanup", "report"])("rejects a reachable database missing %s", async missing => {
+  it.each(["sourcePublicationId", "confirmedGameplay", "requestHash", "storage_cleanup", "report", "payment_orders", "credit_accounts", "credit_ledger", "payment_notifications", "generation_credit_reservations"])("rejects a reachable database missing %s", async missing => {
     mocked.query.mockImplementation(async query => {
       if (query.sql.includes(`\`${missing}\``)) throw new Error(`Missing ${missing}`);
       return [[], []];

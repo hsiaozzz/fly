@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Explore from "./pages/Explore";
+import Billing from "./pages/Billing";
 import PlayGame from "./pages/PlayGame";
 import { useAuth } from "./_core/hooks/useAuth";
 import { useEffect } from "react";
@@ -27,6 +28,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path="/explore" component={Explore} />
+      <Route path="/billing" component={Billing} />
       <Route path="/play/:publicationId">
         {params => <PlayGame publicationId={params.publicationId} />}
       </Route>
@@ -46,7 +48,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="dark"
+        defaultTheme="light"
         // switchable
       >
         <TooltipProvider>

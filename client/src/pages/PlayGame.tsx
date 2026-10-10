@@ -15,6 +15,8 @@ import { startLogin } from "@/const";
 import { createGameSandbox } from "@/lib/gamePreview";
 import { trpc } from "@/lib/trpc";
 
+const BRAND_LOGO = import.meta.env.VITE_APP_LOGO || "/arcane-avocado.svg";
+
 export default function PlayGame({ publicationId }: { publicationId: string }) {
   const shareToken =
     new URLSearchParams(window.location.search).get("share") ?? undefined;
@@ -66,8 +68,11 @@ export default function PlayGame({ publicationId }: { publicationId: string }) {
   return (
     <main className="play-page">
       <header className="community-header">
-        <Link href="/" className="community-brand">
-          ARCANE
+        <Link href="/" className="community-brand" aria-label="ARCANE 首页">
+          <img src={BRAND_LOGO} alt="" />
+          <span>
+            arcane<span className="brand-period">.</span>
+          </span>
         </Link>
         <nav>
           <Link href="/explore">探索更多游戏</Link>
@@ -80,7 +85,7 @@ export default function PlayGame({ publicationId }: { publicationId: string }) {
             <Sparkles size={15} />
             {remix.isPending ? "创建项目中…" : "Remix"}
           </Button>
-          {game.data?.publication.visibility !== "private" && (
+          {game.data && game.data.publication.visibility !== "private" && (
             <Button size="sm" variant="ghost" onClick={() => void share()}>
               <Share2 size={15} />
               分享
@@ -89,7 +94,7 @@ export default function PlayGame({ publicationId }: { publicationId: string }) {
         </nav>
       </header>
       {game.isLoading ? (
-        <div className="community-empty">
+        <div className="community-empty" role="status">
           <Loader2 className="animate-spin" />
           正在打开游戏…
         </div>
@@ -98,14 +103,15 @@ export default function PlayGame({ publicationId }: { publicationId: string }) {
           <Gamepad2 size={48} />
           <h1>暂时无法打开这个游戏</h1>
           <p>链接可能已撤销，或此作品需要作者的分享链接或登录访问。</p>
-          <Link href="/explore">
-            <Button>探索公开游戏</Button>
-          </Link>
+          <Button asChild>
+            <Link href="/explore">探索公开游戏</Link>
+          </Button>
         </div>
       ) : (
         <>
           <div className="play-heading">
             <div>
+              <p className="eyebrow">创作者的游戏世界</p>
               <h1>{game.data.artifact.title}</h1>
               <p>{game.data.artifact.description}</p>
             </div>

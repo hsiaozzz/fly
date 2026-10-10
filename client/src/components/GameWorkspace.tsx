@@ -64,6 +64,7 @@ import {
   type WorkspaceState,
 } from "@/lib/workspaceState";
 import { z } from "zod";
+import { BillingPanel } from "@/components/BillingPanel";
 import GamePublishPanel from "@/components/GamePublishPanel";
 import GameParametersPanel from "@/components/GameParametersPanel";
 import ChatMarkdown from "@/components/ChatMarkdown";
@@ -226,12 +227,14 @@ function ProjectPicker({
     <div className="project-picker">
       <button
         className="project-current"
+        aria-expanded={opened}
+        aria-label="选择游戏项目"
         onClick={() => setOpened(value => !value)}
       >
         <span className="project-mark">
           <Gamepad2 size={15} />
         </span>
-        <span>{active?.name ?? "Untitled studio"}</span>
+        <span>{active?.name ?? "新游戏项目"}</span>
         <ChevronDown size={14} />
       </button>
       {opened && (
@@ -396,7 +399,7 @@ export default function GameWorkspace() {
   const [savingDocumentId, setSavingDocumentId] = useState<string | null>(null);
   const [status, setStatus] = useState("描述一个游戏创意");
   const [selectedPath, setSelectedPath] = useState("index.html");
-  const [tab, setTab] = useState<DockTab>("files");
+  const [tab, setTab] = useState<DockTab>("run");
   const [previewMode, setPreviewMode] = useState<PreviewMode>("desktop");
   const [previewKey, setPreviewKey] = useState(0);
   const [clarifyQuestions, setClarifyQuestions] = useState<
@@ -417,6 +420,7 @@ export default function GameWorkspace() {
   } | null>(null);
   const [changesOpen, setChangesOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [billingOpen, setBillingOpen] = useState(false);
   const [historyCursor, setHistoryCursor] = useState<number | null>(null);
   const routeProjectRef = useRef(false);
   const savingRef = useRef(false);
@@ -769,7 +773,7 @@ export default function GameWorkspace() {
             );
             commitWorkspace(applied);
             setSelectedPath("index.html");
-            setTab("files");
+            setTab("run");
             setChangesOpen(mode === "patch");
             setStatus(
               completed.build.status === "failed"
@@ -867,6 +871,7 @@ export default function GameWorkspace() {
     clearTransient();
     setIsLoadingProject(false);
     commitWorkspace(emptyWorkspace(crypto.randomUUID()));
+    setTab("run");
     setStatus("新游戏草稿已就绪 · 可从历史面板恢复原有草稿");
   }
 
@@ -896,7 +901,7 @@ export default function GameWorkspace() {
       ],
     });
     flushDrafts();
-    setTab("files");
+    setTab("run");
     setStatus("预置示例已打开 · 无需模型服务 · 可编辑、试玩和下载");
   }
 
@@ -1171,47 +1176,37 @@ export default function GameWorkspace() {
   }
 
   return (
-    <div className="builder-shell">
+    <div
+      className={`builder-shell ${displayedArtifact ? "is-project" : "is-empty"} mode-${tab}`}
+    >
       <header className="app-header">
-        <div className="brand">
+        <a href="/" className="brand" aria-label="ARCANE 首页">
           <span className="brand-orb brand-logo-frame">
             <img src={BRAND_LOGO} alt="" />
           </span>
-          <div>
-            <strong>ARCANE</strong>
-            <small>AI GAME BUILDER</small>
-          </div>
-        </div>
-        <ProjectPicker
-          projects={(projectsQuery.data ?? []).map(project => ({
-            id: project.id,
-            name: project.name,
-          }))}
-          activeProjectId={activeProjectId}
-          onNew={() => void createEmptyProject()}
-          onSelect={id => void selectProject(id)}
-          cloudEnabled={canUseCloud}
-        />
+          <strong>
+            arcane<span className="brand-period">.</span>
+          </strong>
+          <small>游戏创作空间</small>
+        </a>
         <div className="header-actions">
-          <a className="explore-link" href="/explore">
-            探索游戏
-          </a>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setHistoryOpen(value => !value)}
+            disabled={busy}
+            onClick={openExample}
+            title="预置示例 · 无需模型服务"
           >
-            <History size={15} />
-            <span>历史</span>
+            <Gamepad2 size={15} />
+            <span>体验示例</span>
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            disabled={!canUseCloud}
-            onClick={() => setPublishOpen(value => !value)}
+            onClick={() => setBillingOpen(true)}
           >
-            <ShieldCheck size={15} />
-            <span>发布</span>
+            <Sparkles size={15} />
+            <span>创作额度</span>
           </Button>
           {authLoading ? (
             <Loader2 className="animate-spin" size={17} />
@@ -1237,946 +1232,1180 @@ export default function GameWorkspace() {
               登录
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={busy}
-            onClick={openExample}
-            title="预置示例 · 无需模型服务"
-          >
-            <Gamepad2 size={15} />
-            <span>体验示例</span>
-          </Button>
           <Button size="sm" className="new-game" onClick={newGame}>
             <Plus size={15} />
-            New Game
+            <span>New Game</span>
           </Button>
         </div>
       </header>
-      {(!canGenerate || !canLogin || !canUseCloud) && (
-        <section
-          className="capability-notice"
-          aria-label="站点功能状态"
-          role="status"
-        >
-          <div>
-            <strong>
-              {checkingCapabilities
-                ? "正在确认在线功能"
-                : !capabilities
-                  ? "暂时无法确认在线功能"
-                  : "本地工作台可用"}
-            </strong>
-            <p>
-              {!capabilities
-                ? "在线功能确认后才能使用。已有草稿仍可编辑、试玩和下载。"
-                : [
-                    !canGenerate && "AI 创作尚未开启",
-                    !canLogin && "账号登录尚未开启",
-                    !canUseCloud && "云端项目暂不可用",
-                  ]
-                    .filter(Boolean)
-                    .join("；") + "。已有草稿可继续编辑、试玩和下载。"}
-            </p>
-          </div>
-          <div className="capability-actions">
-            {!capabilities && (
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={checkingCapabilities}
-                onClick={() => void capabilityQuery.refetch()}
-              >
-                重新检查
-              </Button>
-            )}
-            <a
-              href="https://github.com/hsiaozzz/fly#本地开发"
-              target="_blank"
-              rel="noreferrer"
+      <div className="studio-body">
+        <aside className="studio-rail" aria-label="主导航">
+          <div className="rail-main">
+            <button
+              className="rail-item active"
+              onClick={() => {
+                setTab("run");
+                document
+                  .querySelector(".composer textarea")
+                  ?.scrollIntoView({ block: "nearest" });
+              }}
+              title="创作工作台"
             >
-              站点设置帮助
+              <Sparkles size={19} />
+              <span>创作</span>
+            </button>
+            <a className="rail-item" href="/explore" title="探索游戏">
+              <Gamepad2 size={19} />
+              <span>探索</span>
             </a>
-          </div>
-        </section>
-      )}
-      {publishOpen && (
-        <GamePublishPanel
-          artifact={artifact}
-          userId={user?.id}
-          disabled={busy || Boolean(historyPreview) || !canUseCloud}
-          loginEnabled={canLogin}
-          onSave={saveForPublish}
-          onSignIn={signIn}
-          onClose={() => setPublishOpen(false)}
-        />
-      )}
-      {historyOpen && (
-        <section className="history-panel" aria-label="项目版本历史">
-          <div className="history-heading">
-            <strong>项目历史</strong>
-            <span>
-              {workspace.dirty
-                ? "当前草稿尚未保存为项目版本"
-                : "当前草稿已保存"}
-            </span>
-            <Button
-              size="sm"
-              onClick={saveFile}
-              disabled={
-                !artifact || busy || Boolean(historyPreview) || !canUseCloud
-              }
+            <button
+              className={`rail-item ${historyOpen ? "open" : ""}`}
+              onClick={() => setHistoryOpen(value => !value)}
+              title="历史"
             >
-              <Save size={14} />
-              保存版本
-            </Button>
-            <button aria-label="关闭历史" onClick={() => setHistoryOpen(false)}>
-              <X size={16} />
+              <History size={19} />
+              <span>历史</span>
             </button>
           </div>
-          {!canUseCloud ? (
-            <p>云端版本暂不可用。你可以从下方继续打开本地草稿。</p>
-          ) : !isAuthenticated ? (
-            <p>
-              登录后可保存、预览和恢复项目版本。
-              <button onClick={signIn} disabled={!canLogin}>
-                登录
-              </button>
-            </p>
-          ) : !activeProjectId ? (
-            <p>保存当前草稿后自动创建项目。也可以从项目菜单创建新项目。</p>
-          ) : versionsQuery.isLoading ? (
-            <p>正在加载版本…</p>
-          ) : versionsQuery.error ? (
-            <p>
-              历史加载失败。
-              <button onClick={() => void versionsQuery.refetch()}>重试</button>
-            </p>
-          ) : !versionsQuery.data?.items.length ? (
-            <p>项目还没有已保存版本。</p>
-          ) : (
-            <div className="version-list">
-              {versionsQuery.data.items.map(version => (
-                <div key={version.id} className="version-entry">
-                  <div>
-                    <strong>v{version.version}</strong>
-                    <small>
-                      {new Date(version.createdAt).toLocaleString()}
-                    </small>
-                  </div>
-                  <div className="version-actions">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={busy}
-                      onClick={() =>
-                        void loadHistoricalVersion(version.id, false)
-                      }
-                    >
-                      预览
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={busy}
-                      onClick={() =>
-                        void loadHistoricalVersion(version.id, true)
-                      }
-                    >
-                      恢复为新版本
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => void downloadSavedVersion(version.id)}
-                    >
-                      <Download size={13} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+          <div className="rail-bottom">
+            <span className="rail-monogram">a.</span>
+            <small>MAKE / PLAY</small>
+          </div>
+        </aside>
+        <div className="studio-main">
+          {(!canGenerate || !canLogin || !canUseCloud) && (
+            <section
+              className="capability-notice"
+              aria-label="站点功能状态"
+              role="status"
+            >
+              <div>
+                <strong>
+                  {checkingCapabilities
+                    ? "正在确认在线功能"
+                    : !capabilities
+                      ? "暂时无法确认在线功能"
+                      : "本地工作台可用"}
+                </strong>
+                <p>
+                  {!capabilities
+                    ? "在线功能确认后才能使用。已有草稿仍可编辑、试玩和下载。"
+                    : [
+                        !canGenerate && "AI 创作尚未开启",
+                        !canLogin && "账号登录尚未开启",
+                        !canUseCloud && "云端项目暂不可用",
+                      ]
+                        .filter(Boolean)
+                        .join("；") + "。已有草稿可继续编辑、试玩和下载。"}
+                </p>
+              </div>
+              <div className="capability-actions">
+                {!capabilities && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={checkingCapabilities}
+                    onClick={() => void capabilityQuery.refetch()}
+                  >
+                    重新检查
+                  </Button>
+                )}
+                <a
+                  href="https://github.com/hsiaozzz/fly#本地开发"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  站点设置帮助
+                </a>
+              </div>
+            </section>
+          )}
+          {!displayedArtifact && (
+            <div className="home-project-access">
+              <span>云端项目</span>
+              <ProjectPicker
+                projects={(projectsQuery.data ?? []).map(project => ({
+                  id: project.id,
+                  name: project.name,
+                }))}
+                activeProjectId={activeProjectId}
+                onNew={() => void createEmptyProject()}
+                onSelect={id => void selectProject(id)}
+                cloudEnabled={canUseCloud}
+              />
             </div>
           )}
-          {activeProjectId && canUseCloud && (
-            <div className="history-pagination">
-              <button
-                className="history-refresh"
+          {displayedArtifact && (
+            <div className="project-heading">
+              <div className="project-heading-info">
+                <p className="eyebrow">我的创作</p>
+                <ProjectPicker
+                  projects={(projectsQuery.data ?? []).map(project => ({
+                    id: project.id,
+                    name: project.name,
+                  }))}
+                  activeProjectId={activeProjectId}
+                  onNew={() => void createEmptyProject()}
+                  onSelect={id => void selectProject(id)}
+                  cloudEnabled={canUseCloud}
+                />
+              </div>
+              <div className="project-heading-actions">
+                <span className="project-save-state">
+                  <span className="status-dot" />
+                  {historyPreview
+                    ? `历史 v${historyPreview.version}`
+                    : workspace.dirty
+                      ? "本地草稿"
+                      : "已保存版本"}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={saveFile}
+                  disabled={
+                    !artifact || busy || Boolean(historyPreview) || !canUseCloud
+                  }
+                  aria-label="保存当前版本"
+                >
+                  <Save size={14} />
+                  保存
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={!canUseCloud}
+                  onClick={() => setPublishOpen(value => !value)}
+                >
+                  <ShieldCheck size={15} />
+                  发布
+                </Button>
+              </div>
+            </div>
+          )}
+          {publishOpen && (
+            <GamePublishPanel
+              artifact={artifact}
+              userId={user?.id}
+              disabled={busy || Boolean(historyPreview) || !canUseCloud}
+              loginEnabled={canLogin}
+              onSave={saveForPublish}
+              onSignIn={signIn}
+              onClose={() => setPublishOpen(false)}
+            />
+          )}
+          {historyOpen && (
+            <section className="history-panel" aria-label="项目版本历史">
+              <div className="history-heading">
+                <strong>项目历史</strong>
+                <span>
+                  {workspace.dirty
+                    ? "当前草稿尚未保存为项目版本"
+                    : "当前草稿已保存"}
+                </span>
+                <Button
+                  size="sm"
+                  onClick={saveFile}
+                  disabled={
+                    !artifact || busy || Boolean(historyPreview) || !canUseCloud
+                  }
+                >
+                  <Save size={14} />
+                  保存版本
+                </Button>
+                <button
+                  aria-label="关闭历史"
+                  onClick={() => setHistoryOpen(false)}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              {!canUseCloud ? (
+                <p>云端版本暂不可用。你可以从下方继续打开本地草稿。</p>
+              ) : !isAuthenticated ? (
+                <p>
+                  登录后可保存、预览和恢复项目版本。
+                  <button onClick={signIn} disabled={!canLogin}>
+                    登录
+                  </button>
+                </p>
+              ) : !activeProjectId ? (
+                <p>保存当前草稿后自动创建项目。也可以从项目菜单创建新项目。</p>
+              ) : versionsQuery.isLoading ? (
+                <p>正在加载版本…</p>
+              ) : versionsQuery.error ? (
+                <p>
+                  历史加载失败。
+                  <button onClick={() => void versionsQuery.refetch()}>
+                    重试
+                  </button>
+                </p>
+              ) : !versionsQuery.data?.items.length ? (
+                <p>项目还没有已保存版本。</p>
+              ) : (
+                <div className="version-list">
+                  {versionsQuery.data.items.map(version => (
+                    <div key={version.id} className="version-entry">
+                      <div>
+                        <strong>v{version.version}</strong>
+                        <small>
+                          {new Date(version.createdAt).toLocaleString()}
+                        </small>
+                      </div>
+                      <div className="version-actions">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={busy}
+                          onClick={() =>
+                            void loadHistoricalVersion(version.id, false)
+                          }
+                        >
+                          预览
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={busy}
+                          onClick={() =>
+                            void loadHistoricalVersion(version.id, true)
+                          }
+                        >
+                          恢复为新版本
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => void downloadSavedVersion(version.id)}
+                        >
+                          <Download size={13} />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {activeProjectId && canUseCloud && (
+                <div className="history-pagination">
+                  <button
+                    className="history-refresh"
+                    onClick={() => {
+                      setHistoryCursor(null);
+                      void versionsQuery.refetch();
+                    }}
+                  >
+                    最新版本
+                  </button>
+                  {versionsQuery.data?.nextCursor && (
+                    <button
+                      className="history-refresh"
+                      onClick={() =>
+                        setHistoryCursor(versionsQuery.data!.nextCursor)
+                      }
+                    >
+                      更早版本
+                    </button>
+                  )}
+                </div>
+              )}
+              <div className="local-drafts">
+                <strong>本地草稿</strong>
+                {Object.values(libraryRef.current.documents)
+                  .filter(
+                    document =>
+                      document.artifact ||
+                      document.documentId === workspace.documentId
+                  )
+                  .map(document => (
+                    <button
+                      className={
+                        document.documentId === workspace.documentId
+                          ? "active"
+                          : ""
+                      }
+                      key={document.documentId}
+                      onClick={() => selectLocalDraft(document.documentId)}
+                    >
+                      {document.artifact?.title ?? "新游戏"}
+                      {document.dirty ? " · 未保存" : ""}
+                    </button>
+                  ))}
+              </div>
+            </section>
+          )}
+          {historyPreview && (
+            <div className="history-preview-banner">
+              正在只读预览 v{historyPreview.version} ·
+              编辑器、预览和下载均指向此历史版本
+              <Button
+                size="sm"
+                variant="ghost"
                 onClick={() => {
-                  setHistoryCursor(null);
-                  void versionsQuery.refetch();
+                  setHistoryPreview(null);
+                  setStatus("已返回当前草稿");
                 }}
               >
-                最新版本
-              </button>
-              {versionsQuery.data?.nextCursor && (
-                <button
-                  className="history-refresh"
-                  onClick={() =>
-                    setHistoryCursor(versionsQuery.data!.nextCursor)
-                  }
-                >
-                  更早版本
-                </button>
-              )}
-            </div>
-          )}
-          <div className="local-drafts">
-            <strong>本地草稿</strong>
-            {Object.values(libraryRef.current.documents)
-              .filter(
-                document =>
-                  document.artifact ||
-                  document.documentId === workspace.documentId
-              )
-              .map(document => (
-                <button
-                  className={
-                    document.documentId === workspace.documentId ? "active" : ""
-                  }
-                  key={document.documentId}
-                  onClick={() => selectLocalDraft(document.documentId)}
-                >
-                  {document.artifact?.title ?? "新游戏"}
-                  {document.dirty ? " · 未保存" : ""}
-                </button>
-              ))}
-          </div>
-        </section>
-      )}
-      {historyPreview && (
-        <div className="history-preview-banner">
-          正在只读预览 v{historyPreview.version} ·
-          编辑器、预览和下载均指向此历史版本
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              setHistoryPreview(null);
-              setStatus("已返回当前草稿");
-            }}
-          >
-            返回当前草稿
-          </Button>
-          <Button
-            size="sm"
-            disabled={busy || !canUseCloud}
-            onClick={() =>
-              void loadHistoricalVersion(historyPreview.versionId, true)
-            }
-          >
-            恢复为新版本
-          </Button>
-        </div>
-      )}
-      <main className="workbench">
-        <section className="chat-panel">
-          <div className="panel-top">
-            <div>
-              <p className="eyebrow">CONVERSATION</p>
-              <h1>Build with intent</h1>
-            </div>
-            <span className="draft-badge">
-              {workspace.dirty ? "未保存版本" : "草稿"}
-            </span>
-          </div>
-          <div className="agent-status" role="status">
-            <span className={isGenerating ? "status-dot busy" : "status-dot"} />
-            {status}
-          </div>
-          <div className="draft-storage" title={storageStatus}>
-            {storageStatus}
-          </div>
-          {intentText && (
-            <div className="intent-card">
-              <Sparkles size={13} />
-              <span>
-                <b>已理解：</b>
-                {intentText}
-              </span>
-            </div>
-          )}
-          <div className="messages">
-            {messages.map(message => (
-              <article key={message.id} className={`message ${message.role}`}>
-                <div className="avatar">
-                  {message.role === "user" ? (
-                    <UserRound size={15} />
-                  ) : message.role === "system" ? (
-                    <Gamepad2 size={16} />
-                  ) : (
-                    <Bot size={16} />
-                  )}
-                </div>
-                <div className="bubble">
-                  {message.role === "assistant" ? (
-                    <ChatMarkdown>
-                      {message.content || "正在思考…"}
-                    </ChatMarkdown>
-                  ) : (
-                    message.content
-                  )}
-                </div>
-              </article>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-          {trace.length > 0 && (
-            <div className="trace-panel">
-              <div className="trace-head">
-                <Wrench size={12} />
-                创作进度
-              </div>
-              {trace.map((step, index) => {
-                const hasChecks = Boolean(step.checks?.length);
-                const failed =
-                  step.checks?.filter(check => check.status === "fail")
-                    .length ?? 0;
-                const warned =
-                  step.checks?.filter(check => check.status === "warn")
-                    .length ?? 0;
-                return (
-                  <div
-                    key={`${step.agent}-${index}`}
-                    className={`trace-step ${step.status}`}
-                  >
-                    <button
-                      className="trace-row"
-                      onClick={() =>
-                        hasChecks &&
-                        setOpenTrace(openTrace === index ? null : index)
-                      }
-                      disabled={!hasChecks}
-                    >
-                      <span className="trace-mark">
-                        {step.status === "repaired" ? (
-                          <Wrench size={11} />
-                        ) : step.status === "running" ? (
-                          <Loader2 size={11} className="animate-spin" />
-                        ) : step.status === "fallback" ||
-                          step.status === "failed" ? (
-                          <X size={11} />
-                        ) : (
-                          <Check size={11} />
-                        )}
-                      </span>
-                      <b>{step.agent}</b>
-                      <span className="trace-detail">{step.detail}</span>
-                      {hasChecks && (
-                        <span
-                          className={`trace-badge ${failed ? "bad" : warned ? "soft" : "good"}`}
-                        >
-                          {failed
-                            ? `${failed} 项未过`
-                            : warned
-                              ? `${warned} 项建议`
-                              : "检查通过"}
-                        </span>
-                      )}
-                    </button>
-                    {hasChecks && openTrace === index && (
-                      <div className="trace-checks">
-                        {step.checks!.map(check => (
-                          <GateRow key={check.name} check={check} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {clarifyQuestions && (
-            <div className="clarify-card">
-              <div className="clarify-head">
-                <Sparkles size={15} />
-                创作前确认 · {clarifyIntent}
-              </div>
-              {clarifyQuestions.map(question => (
-                <div key={question.id} className="clarify-item">
-                  <label htmlFor={`clarify-${question.id}`}>
-                    {question.question}
-                  </label>
-                  {question.hint && <small>{question.hint}</small>}
-                  <Textarea
-                    id={`clarify-${question.id}`}
-                    rows={2}
-                    value={clarifyAnswers[question.id] ?? ""}
-                    onChange={event =>
-                      setClarifyAnswers(current => ({
-                        ...current,
-                        [question.id]: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              ))}
-              <div className="clarify-actions">
-                <Button variant="ghost" size="sm" onClick={cancelClarify}>
-                  取消
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={busy || !canGenerate}
-                  onClick={submitClarifyAnswers}
-                >
-                  按此创作
-                </Button>
-              </div>
-            </div>
-          )}
-          {!artifact && (
-            <div className="suggestions">
-              <button
-                disabled={busy || !canGenerate}
-                onClick={() => handleSend(SAMPLE_PROMPT)}
-              >
-                跑酷吃金币
-              </button>
-              <button
-                disabled={busy || !canGenerate}
+                返回当前草稿
+              </Button>
+              <Button
+                size="sm"
+                disabled={busy || !canUseCloud}
                 onClick={() =>
-                  handleSend(
-                    "做一个竖屏太空射击游戏，飞船左右移动发射激光消灭小行星，有血条"
-                  )
+                  void loadHistoricalVersion(historyPreview.versionId, true)
                 }
               >
-                太空射击
-              </button>
-              <button
-                disabled={busy || !canGenerate}
-                onClick={() => handleSend("做一个记忆翻牌小游戏，点击卡片配对")}
-              >
-                记忆翻牌
-              </button>
+                恢复为新版本
+              </Button>
             </div>
           )}
-          {artifact && (
-            <div className="suggestions">
+          {displayedArtifact && (
+            <nav className="dock-tabs workspace-modes" aria-label="工作区模式">
               <button
-                disabled={busy || Boolean(historyPreview)}
-                onClick={() =>
-                  setPrompt(
-                    "保持玩法和美术不变，让移动和跳跃手感更流畅，修复不合理的碰撞。"
-                  )
-                }
+                className={tab === "run" ? "selected" : ""}
+                onClick={() => setTab("run")}
+                aria-pressed={tab === "run"}
               >
-                改善手感
+                <Play size={15} />
+                试玩
+              </button>
+
+              <button
+                className={tab === "files" ? "selected" : ""}
+                aria-pressed={tab === "files"}
+                onClick={() => setTab("files")}
+              >
+                <Code2 size={15} />
+                Files <span>{displayedFiles.length || "—"}</span>
               </button>
               <button
-                disabled={busy || Boolean(historyPreview)}
-                onClick={() =>
-                  setPrompt(
-                    "保持当前游戏和美术，降低前期难度，让新手更容易理解操作，增加逐步难度曲线。"
-                  )
-                }
+                className={tab === "console" ? "selected" : ""}
+                aria-pressed={tab === "console"}
+                onClick={() => setTab("console")}
               >
-                调整难度
+                <Terminal size={15} />
+                Console{" "}
+                {build?.status === "passed" && !historyPreview && (
+                  <i className="pass-dot" />
+                )}
               </button>
               <button
-                disabled={busy || Boolean(historyPreview)}
-                onClick={() =>
-                  setPrompt(
-                    "保持当前玩法，增加适合手机的触控操作，并让界面适应横竖屏。"
-                  )
-                }
+                className={tab === "spec" ? "selected" : ""}
+                aria-pressed={tab === "spec"}
+                onClick={() => setTab("spec")}
               >
-                完善触控
+                <PanelBottom size={15} />
+                游戏文档
               </button>
-            </div>
-          )}
-          <div className="composer">
-            <Textarea
-              aria-label="游戏创作描述"
-              value={prompt}
-              maxLength={2000}
-              onChange={event => setPrompt(event.target.value)}
-              onKeyDown={event => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder={
-                canPatch
-                  ? "描述你想改变的玩法、外观或操作…"
-                  : "描述你想创建的游戏…"
-              }
-              disabled={
-                busy || Boolean(clarifyQuestions) || Boolean(historyPreview)
-              }
-              rows={3}
-            />
-            <div className="composer-bar">
-              <span>
-                {canPatch ? "继续修改你的游戏" : "创意 → 创作 → 试玩"}
-              </span>
-              {isGenerating ? (
-                <Button variant="ghost" size="sm" onClick={cancelTask}>
-                  <Square size={14} />
-                  停止
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  onClick={() => handleSend()}
-                  disabled={
-                    !prompt.trim() ||
-                    !canGenerate ||
-                    busy ||
-                    Boolean(clarifyQuestions) ||
-                    Boolean(historyPreview)
-                  }
-                >
-                  {canPatch ? <Wrench size={15} /> : <Send size={15} />}
-                  {canPatch ? "应用修改" : "生成游戏"}
-                </Button>
-              )}
-            </div>
-          </div>
-        </section>
-        <section className="preview-panel">
-          <div className="preview-top">
-            <div>
-              <p className="eyebrow">LIVE PREVIEW</p>
-              <h2>{displayedArtifact?.title ?? "你的游戏将出现在这里"}</h2>
-            </div>
-            <div className="preview-controls">
               <button
-                className="restart-game"
-                onClick={restartPreview}
+                className={tab === "parameters" ? "selected" : ""}
+                aria-pressed={tab === "parameters"}
+                onClick={() => setTab("parameters")}
+              >
+                <Wrench size={15} />
+                参数
+              </button>
+              <button
+                className={tab === "gates" ? "selected" : ""}
+                aria-pressed={tab === "gates"}
+                onClick={() => setTab("gates")}
+              >
+                <ShieldCheck size={15} />
+                QA
+                {currentValidation?.failures.length ||
+                probe?.checks.some(check => check.status === "fail") ? (
+                  <i className="qa-dot bad" />
+                ) : currentValidation || probe ? (
+                  <i className="qa-dot ok" />
+                ) : null}
+              </button>
+              <span className="dock-spacer" />
+              <button
+                onClick={undoChange}
+                disabled={
+                  !workspace.undo.length || busy || Boolean(historyPreview)
+                }
+                title="撤回上一次修改"
+              >
+                <Undo2 size={15} />
+                撤回
+              </button>
+              <button
+                onClick={() => setChangesOpen(value => !value)}
+                disabled={!artifact}
+              >
+                修改摘要
+              </button>
+              <button
+                className="download-button"
+                onClick={() => void downloadZip()}
                 disabled={!displayedArtifact}
-                title="重新开始"
               >
-                <RefreshCw size={14} />
-                <span>重新开始</span>
+                <Download size={15} />
+                Download ZIP
               </button>
-              <button
-                className={previewMode === "desktop" ? "active" : ""}
-                onClick={() => setPreviewMode("desktop")}
-                title="桌面预览"
-                aria-label="桌面预览"
-              >
-                <Monitor size={16} />
-              </button>
-              <button
-                className={previewMode === "mobile" ? "active" : ""}
-                onClick={() => setPreviewMode("mobile")}
-                title="手机预览"
-                aria-label="手机预览"
-              >
-                <Smartphone size={16} />
-              </button>
-              <button
-                onClick={() =>
-                  void document
-                    .querySelector(".preview-frame-wrap")
-                    ?.requestFullscreen()
-                    .catch(() => toast.info("此浏览器暂不支持全屏。"))
-                }
-                title="全屏"
-                aria-label="全屏"
-              >
-                <Maximize2 size={16} />
-              </button>
-            </div>
-          </div>
-          <div className={`preview-stage ${previewMode}`}>
-            <div className="preview-frame-wrap">
-              {displayedArtifact ? (
-                <iframe
-                  ref={iframeRef}
-                  key={previewRunId}
-                  title="游戏隔离预览"
-                  sandbox="allow-scripts"
-                  srcDoc={sandbox}
-                />
-              ) : (
-                <div className="preview-empty">
-                  <span>
-                    <Gamepad2 size={38} />
+            </nav>
+          )}
+          <main
+            className="workbench"
+            aria-label={displayedArtifact ? "游戏创作工作台" : "开始游戏创作"}
+          >
+            <section className="chat-panel">
+              {!displayedArtifact ? (
+                <div className="home-heading">
+                  <span className="home-kicker">
+                    <Sparkles size={15} /> 从一个想法开始
                   </span>
-                  <h3>把你的创意变成游戏</h3>
-                  <p>描述玩法和风格，创作后即可试玩和继续修改。</p>
-                  <small>预置示例 · 无需模型服务</small>
-                  <button disabled={busy} onClick={openExample}>
-                    <Gamepad2 size={15} />
-                    体验示例
+                  <h1>
+                    你的下一个游戏，
+                    <br />
+                    <em>由你想象。</em>
+                  </h1>
+                  <p>描述你想玩的世界，把它变成可以试玩、修改和分享的游戏。</p>
+                </div>
+              ) : (
+                <div className="panel-top">
+                  <div>
+                    <span className="eyebrow">创作助手</span>
+                    <h2>让想法继续生长</h2>
+                  </div>
+                  <span className="draft-badge">
+                    {workspace.dirty ? "未保存" : "已保存"}
+                  </span>
+                </div>
+              )}
+              <div className="agent-status" role="status">
+                <span
+                  className={isGenerating ? "status-dot busy" : "status-dot"}
+                />
+                {status}
+              </div>
+              <div className="draft-storage" title={storageStatus}>
+                {storageStatus}
+              </div>
+              {intentText && (
+                <div className="intent-card">
+                  <Sparkles size={13} />
+                  <span>
+                    <b>已理解：</b>
+                    {intentText}
+                  </span>
+                </div>
+              )}
+              <div className="messages" aria-label="创作记录">
+                {messages
+                  .filter(
+                    message =>
+                      displayedArtifact || !message.id.endsWith("-intro")
+                  )
+                  .map(message => (
+                    <article
+                      key={message.id}
+                      className={`message ${message.role}`}
+                    >
+                      <div className="avatar">
+                        {message.role === "user" ? (
+                          <UserRound size={15} />
+                        ) : message.role === "system" ? (
+                          <Gamepad2 size={16} />
+                        ) : (
+                          <Bot size={16} />
+                        )}
+                      </div>
+                      <div className="bubble">
+                        {message.role === "assistant" ? (
+                          <ChatMarkdown>
+                            {message.content || "正在思考…"}
+                          </ChatMarkdown>
+                        ) : (
+                          message.content
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                <div ref={messagesEndRef} />
+              </div>
+              {trace.length > 0 && (
+                <div className="trace-panel">
+                  <div className="trace-head">
+                    <Wrench size={12} />
+                    创作进度
+                  </div>
+                  {trace.map((step, index) => {
+                    const hasChecks = Boolean(step.checks?.length);
+                    const failed =
+                      step.checks?.filter(check => check.status === "fail")
+                        .length ?? 0;
+                    const warned =
+                      step.checks?.filter(check => check.status === "warn")
+                        .length ?? 0;
+                    return (
+                      <div
+                        key={`${step.agent}-${index}`}
+                        className={`trace-step ${step.status}`}
+                      >
+                        <button
+                          className="trace-row"
+                          onClick={() =>
+                            hasChecks &&
+                            setOpenTrace(openTrace === index ? null : index)
+                          }
+                          disabled={!hasChecks}
+                        >
+                          <span className="trace-mark">
+                            {step.status === "repaired" ? (
+                              <Wrench size={11} />
+                            ) : step.status === "running" ? (
+                              <Loader2 size={11} className="animate-spin" />
+                            ) : step.status === "fallback" ||
+                              step.status === "failed" ? (
+                              <X size={11} />
+                            ) : (
+                              <Check size={11} />
+                            )}
+                          </span>
+                          <b>{step.agent}</b>
+                          <span className="trace-detail">{step.detail}</span>
+                          {hasChecks && (
+                            <span
+                              className={`trace-badge ${failed ? "bad" : warned ? "soft" : "good"}`}
+                            >
+                              {failed
+                                ? `${failed} 项未过`
+                                : warned
+                                  ? `${warned} 项建议`
+                                  : "检查通过"}
+                            </span>
+                          )}
+                        </button>
+                        {hasChecks && openTrace === index && (
+                          <div className="trace-checks">
+                            {step.checks!.map(check => (
+                              <GateRow key={check.name} check={check} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {clarifyQuestions && (
+                <div className="clarify-card">
+                  <div className="clarify-head">
+                    <Sparkles size={15} />
+                    创作前确认 · {clarifyIntent}
+                  </div>
+                  {clarifyQuestions.map(question => (
+                    <div key={question.id} className="clarify-item">
+                      <label htmlFor={`clarify-${question.id}`}>
+                        {question.question}
+                      </label>
+                      {question.hint && <small>{question.hint}</small>}
+                      <Textarea
+                        id={`clarify-${question.id}`}
+                        rows={2}
+                        value={clarifyAnswers[question.id] ?? ""}
+                        onChange={event =>
+                          setClarifyAnswers(current => ({
+                            ...current,
+                            [question.id]: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  ))}
+                  <div className="clarify-actions">
+                    <Button variant="ghost" size="sm" onClick={cancelClarify}>
+                      取消
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={busy || !canGenerate}
+                      onClick={submitClarifyAnswers}
+                    >
+                      按此创作
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {!artifact && (
+                <div className="suggestions">
+                  <button
+                    disabled={busy || !canGenerate}
+                    onClick={() => handleSend(SAMPLE_PROMPT)}
+                  >
+                    跑酷吃金币
+                  </button>
+                  <button
+                    disabled={busy || !canGenerate}
+                    onClick={() =>
+                      handleSend(
+                        "做一个竖屏太空射击游戏，飞船左右移动发射激光消灭小行星，有血条"
+                      )
+                    }
+                  >
+                    太空射击
+                  </button>
+                  <button
+                    disabled={busy || !canGenerate}
+                    onClick={() =>
+                      handleSend("做一个记忆翻牌小游戏，点击卡片配对")
+                    }
+                  >
+                    记忆翻牌
                   </button>
                 </div>
               )}
-            </div>
-          </div>
-          {displayedArtifact?.controls?.length ? (
-            <div className="controls-strip">
-              <span className="controls-label">操作</span>
-              {displayedArtifact.controls.map((control, index) => (
-                <span key={index} className="control-chip">
-                  {control}
-                </span>
-              ))}
-            </div>
-          ) : null}
-          <div className="pipeline-strip">
-            {trace.length ? (
-              trace.map((step, index) => (
-                <Fragment key={`strip-${step.agent}-${index}`}>
-                  {index > 0 && <i />}
-                  <span
-                    className={
-                      step.status === "repaired"
-                        ? "repaired"
-                        : step.status === "fallback" || step.status === "failed"
-                          ? "warned"
-                          : step.status === "running"
-                            ? "running"
-                            : "complete"
+              {artifact && (
+                <div className="suggestions">
+                  <button
+                    disabled={busy || Boolean(historyPreview)}
+                    onClick={() =>
+                      setPrompt(
+                        "保持玩法和美术不变，让移动和跳跃手感更流畅，修复不合理的碰撞。"
+                      )
                     }
-                    title={step.detail}
                   >
-                    {step.status === "running" ? (
-                      <Loader2 size={13} className="animate-spin" />
-                    ) : step.status === "fallback" ||
-                      step.status === "failed" ? (
-                      <X size={13} />
-                    ) : (
-                      <Check size={13} />
-                    )}
-                    {step.agent}
-                  </span>
-                </Fragment>
-              ))
-            ) : (
-              <span>
-                {displayedArtifact ? "当前草稿可直接试玩" : "等待创作"}
-              </span>
-            )}
-          </div>
-        </section>
-      </main>
-      <section className="dock">
-        <div className="dock-tabs">
-          <button
-            className={tab === "files" ? "selected" : ""}
-            onClick={() => setTab("files")}
-          >
-            <Code2 size={15} />
-            Files <span>{displayedFiles.length || "—"}</span>
-          </button>
-          <button
-            className={tab === "console" ? "selected" : ""}
-            onClick={() => setTab("console")}
-          >
-            <Terminal size={15} />
-            Console{" "}
-            {build?.status === "passed" && !historyPreview && (
-              <i className="pass-dot" />
-            )}
-          </button>
-          <button
-            className={tab === "spec" ? "selected" : ""}
-            onClick={() => setTab("spec")}
-          >
-            <PanelBottom size={15} />
-            游戏文档
-          </button>
-          <button
-            className={tab === "parameters" ? "selected" : ""}
-            onClick={() => setTab("parameters")}
-          >
-            <Wrench size={15} />
-            参数
-          </button>
-          <button
-            className={tab === "gates" ? "selected" : ""}
-            onClick={() => setTab("gates")}
-          >
-            <ShieldCheck size={15} />
-            QA
-            {currentValidation?.failures.length ||
-            probe?.checks.some(check => check.status === "fail") ? (
-              <i className="qa-dot bad" />
-            ) : currentValidation || probe ? (
-              <i className="qa-dot ok" />
-            ) : null}
-          </button>
-          <button
-            className={tab === "run" ? "selected" : ""}
-            onClick={() => {
-              setTab("run");
-              restartPreview();
-            }}
-          >
-            <Play size={15} />
-            Run
-          </button>
-          <span className="dock-spacer" />
-          <button
-            onClick={undoChange}
-            disabled={!workspace.undo.length || busy || Boolean(historyPreview)}
-            title="撤回上一次修改"
-          >
-            <Undo2 size={15} />
-            撤回
-          </button>
-          <button
-            onClick={() => setChangesOpen(value => !value)}
-            disabled={!artifact}
-          >
-            修改摘要
-          </button>
-          <button
-            className="download-button"
-            onClick={() => void downloadZip()}
-            disabled={!displayedArtifact}
-          >
-            <Download size={15} />
-            Download ZIP
-          </button>
-        </div>
-        {changesOpen && (
-          <div className="changes-panel">
-            <strong>最近一次修改</strong>
-            {changes.length ? (
-              changes.map(change => (
-                <span key={change.path}>
-                  <b>
-                    {change.kind === "added"
-                      ? "+"
-                      : change.kind === "removed"
-                        ? "−"
-                        : "~"}{" "}
-                    {change.path}
-                  </b>{" "}
-                  · {change.beforeLines} → {change.afterLines} 行
-                </span>
-              ))
-            ) : (
-              <span>尚无文件变更</span>
-            )}
-          </div>
-        )}
-        <div className="dock-body">
-          {tab === "files" && (
-            <div className="files-view">
-              <Tree
-                files={displayedFiles}
-                activePath={selectedFile?.path ?? ""}
-                onSelect={setSelectedPath}
-              />
-              <div className="editor-area">
-                <div className="editor-head">
-                  <span>
-                    {selectedFile?.path ?? "No file selected"}
-                    {historyPreview
-                      ? " · 历史版本只读"
-                      : workspace.dirty
-                        ? " · 未保存"
-                        : ""}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={
-                      !artifact ||
-                      busy ||
-                      Boolean(historyPreview) ||
-                      !canUseCloud
+                    改善手感
+                  </button>
+                  <button
+                    disabled={busy || Boolean(historyPreview)}
+                    onClick={() =>
+                      setPrompt(
+                        "保持当前游戏和美术，降低前期难度，让新手更容易理解操作，增加逐步难度曲线。"
+                      )
                     }
-                    onClick={() => void saveFile()}
                   >
-                    <Save size={14} />
-                    {isSaving ? "保存中…" : "Save version"}
-                  </Button>
+                    调整难度
+                  </button>
+                  <button
+                    disabled={busy || Boolean(historyPreview)}
+                    onClick={() =>
+                      setPrompt(
+                        "保持当前玩法，增加适合手机的触控操作，并让界面适应横竖屏。"
+                      )
+                    }
+                  >
+                    完善触控
+                  </button>
                 </div>
-                {selectedFile ? (
-                  <Suspense
-                    fallback={
-                      <div className="editor-empty">正在加载代码编辑器…</div>
+              )}
+              <div className="composer">
+                <Textarea
+                  aria-label="游戏创作描述"
+                  value={prompt}
+                  maxLength={2000}
+                  onChange={event => setPrompt(event.target.value)}
+                  onKeyDown={event => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      handleSend();
                     }
+                  }}
+                  placeholder={
+                    canPatch
+                      ? "描述你想改变的玩法、外观或操作…"
+                      : "描述你想创建的游戏…"
+                  }
+                  disabled={
+                    busy || Boolean(clarifyQuestions) || Boolean(historyPreview)
+                  }
+                  rows={3}
+                />
+                <div className="composer-bar">
+                  <span>
+                    {canPatch ? "继续修改你的游戏" : "创意 → 创作 → 试玩"}
+                  </span>
+                  {isGenerating ? (
+                    <Button variant="ghost" size="sm" onClick={cancelTask}>
+                      <Square size={14} />
+                      停止
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => handleSend()}
+                      disabled={
+                        !prompt.trim() ||
+                        !canGenerate ||
+                        busy ||
+                        Boolean(clarifyQuestions) ||
+                        Boolean(historyPreview)
+                      }
+                    >
+                      {canPatch ? <Wrench size={15} /> : <Send size={15} />}
+                      {canPatch ? "应用修改" : "生成游戏"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+              {!displayedArtifact && (
+                <div className="home-library">
+                  <div className="home-section-heading">
+                    <h2>先玩一个，再开始创作</h2>
+                    <span>本地示例</span>
+                  </div>
+                  <button
+                    className="preset-card"
+                    disabled={busy}
+                    onClick={openExample}
+                    aria-label="打开接苹果预置示例"
                   >
-                    <Editor
-                      height="250px"
-                      theme="vs-dark"
-                      path={`${workspace.documentId}/${historyPreview?.versionId ?? "draft"}/${selectedFile.path}`}
-                      language={language(selectedFile)}
-                      value={selectedFile.content}
-                      onChange={value => updateFile(value ?? "")}
-                      options={{
-                        readOnly: busy || Boolean(historyPreview),
-                        minimap: { enabled: false },
-                        fontSize: 13,
-                        wordWrap: "on",
-                        padding: { top: 12 },
-                      }}
+                    <div className="preset-art" aria-hidden="true">
+                      <svg viewBox="0 0 360 150" fill="none">
+                        <path
+                          d="M0 128C63 98 136 139 205 111c56-23 102-13 155 0v39H0z"
+                          fill="#c6dcc0"
+                        />
+                        <path
+                          d="M267 62v64"
+                          stroke="#84654e"
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                        />
+                        <circle cx="267" cy="54" r="35" fill="#aec79d" />
+                        <circle cx="242" cy="67" r="23" fill="#aec79d" />
+                        <circle cx="289" cy="69" r="25" fill="#aec79d" />
+                        <circle cx="253" cy="49" r="5" fill="#bf694f" />
+                        <circle cx="284" cy="63" r="5" fill="#bf694f" />
+                        <circle cx="100" cy="67" r="8" fill="#bf694f" />
+                        <path
+                          d="M100 59l3-6"
+                          stroke="#42634b"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
+                        <path d="M71 105h57l-7 24H78z" fill="#8c6c51" />
+                        <path
+                          d="M68 103h63"
+                          stroke="#694e38"
+                          strokeWidth="5"
+                          strokeLinecap="round"
+                        />
+                        <path
+                          d="M49 45h18m-9-9v18"
+                          stroke="#8fad90"
+                          strokeWidth="2"
+                        />
+                        <circle cx="177" cy="37" r="3" fill="#8fad90" />
+                        <circle cx="193" cy="79" r="2" fill="#8fad90" />
+                      </svg>
+                    </div>
+                    <div className="preset-copy">
+                      <span>
+                        <Gamepad2 size={15} /> 接苹果小果园
+                      </span>
+                      <p>移动篮子，接住苹果。用一个轻松小游戏熟悉创作流程。</p>
+                      <small>
+                        预置示例 · 无需模型服务 <ChevronRight size={13} />
+                      </small>
+                    </div>
+                  </button>
+                  {Object.values(libraryRef.current.documents).some(
+                    document => document.artifact
+                  ) && (
+                    <div className="recent-drafts">
+                      <div className="home-section-heading">
+                        <h2>继续你的创作</h2>
+                        <button onClick={() => setHistoryOpen(true)}>
+                          查看全部 <ChevronRight size={13} />
+                        </button>
+                      </div>
+                      <div className="recent-draft-grid">
+                        {Object.values(libraryRef.current.documents)
+                          .filter(document => document.artifact)
+                          .slice(-4)
+                          .reverse()
+                          .map(document => (
+                            <button
+                              key={document.documentId}
+                              onClick={() =>
+                                selectLocalDraft(document.documentId)
+                              }
+                              disabled={busy}
+                            >
+                              <span className="recent-draft-icon">
+                                <Gamepad2 size={20} />
+                              </span>
+                              <span>
+                                <strong>{document.artifact!.title}</strong>
+                                <small>
+                                  {document.dirty
+                                    ? "本地草稿 · 未保存版本"
+                                    : "已保存版本"}
+                                </small>
+                              </span>
+                              <ChevronRight size={15} />
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+            <section className="preview-panel">
+              <div className="preview-top">
+                <div>
+                  <p className="eyebrow">实时试玩</p>
+                  <h2>{displayedArtifact?.title ?? "你的游戏将出现在这里"}</h2>
+                </div>
+                <div className="preview-controls">
+                  <button
+                    className="restart-game"
+                    onClick={restartPreview}
+                    disabled={!displayedArtifact}
+                    title="重新开始"
+                  >
+                    <RefreshCw size={14} />
+                    <span>重新开始</span>
+                  </button>
+                  <button
+                    className={previewMode === "desktop" ? "active" : ""}
+                    onClick={() => setPreviewMode("desktop")}
+                    title="桌面预览"
+                    aria-label="桌面预览"
+                  >
+                    <Monitor size={16} />
+                  </button>
+                  <button
+                    className={previewMode === "mobile" ? "active" : ""}
+                    onClick={() => setPreviewMode("mobile")}
+                    title="手机预览"
+                    aria-label="手机预览"
+                  >
+                    <Smartphone size={16} />
+                  </button>
+                  <button
+                    onClick={() =>
+                      void document
+                        .querySelector(".preview-frame-wrap")
+                        ?.requestFullscreen()
+                        .catch(() => toast.info("此浏览器暂不支持全屏。"))
+                    }
+                    title="全屏"
+                    aria-label="全屏"
+                  >
+                    <Maximize2 size={16} />
+                  </button>
+                </div>
+              </div>
+              <div className={`preview-stage ${previewMode}`}>
+                <div className="preview-frame-wrap">
+                  {displayedArtifact ? (
+                    <iframe
+                      ref={iframeRef}
+                      key={previewRunId}
+                      title="游戏隔离预览"
+                      sandbox="allow-scripts"
+                      srcDoc={sandbox}
                     />
-                  </Suspense>
+                  ) : (
+                    <div className="preview-empty">
+                      <span>
+                        <Gamepad2 size={38} />
+                      </span>
+                      <h3>把你的创意变成游戏</h3>
+                      <p>描述玩法和风格，创作后即可试玩和继续修改。</p>
+                      <small>预置示例 · 无需模型服务</small>
+                      <button disabled={busy} onClick={openExample}>
+                        <Gamepad2 size={15} />
+                        体验示例
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {displayedArtifact?.controls?.length ? (
+                <div className="controls-strip">
+                  <span className="controls-label">操作</span>
+                  {displayedArtifact.controls.map((control, index) => (
+                    <span key={index} className="control-chip">
+                      {control}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              <div className="pipeline-strip">
+                {trace.length ? (
+                  trace.map((step, index) => (
+                    <Fragment key={`strip-${step.agent}-${index}`}>
+                      {index > 0 && <i />}
+                      <span
+                        className={
+                          step.status === "repaired"
+                            ? "repaired"
+                            : step.status === "fallback" ||
+                                step.status === "failed"
+                              ? "warned"
+                              : step.status === "running"
+                                ? "running"
+                                : "complete"
+                        }
+                        title={step.detail}
+                      >
+                        {step.status === "running" ? (
+                          <Loader2 size={13} className="animate-spin" />
+                        ) : step.status === "fallback" ||
+                          step.status === "failed" ? (
+                          <X size={13} />
+                        ) : (
+                          <Check size={13} />
+                        )}
+                        {step.agent}
+                      </span>
+                    </Fragment>
+                  ))
                 ) : (
-                  <div className="editor-empty">
-                    创作后可浏览与编辑真实源码。
+                  <span>
+                    {displayedArtifact ? "当前草稿可直接试玩" : "等待创作"}
+                  </span>
+                )}
+              </div>
+            </section>
+            <section
+              className="dock"
+              aria-label="游戏编辑与检查"
+              hidden={!displayedArtifact || (tab === "run" && !changesOpen)}
+            >
+              {changesOpen && (
+                <div className="changes-panel">
+                  <strong>最近一次修改</strong>
+                  {changes.length ? (
+                    changes.map(change => (
+                      <span key={change.path}>
+                        <b>
+                          {change.kind === "added"
+                            ? "+"
+                            : change.kind === "removed"
+                              ? "−"
+                              : "~"}{" "}
+                          {change.path}
+                        </b>{" "}
+                        · {change.beforeLines} → {change.afterLines} 行
+                      </span>
+                    ))
+                  ) : (
+                    <span>尚无文件变更</span>
+                  )}
+                </div>
+              )}
+              <div className="dock-body" hidden={tab === "run"}>
+                {tab === "files" && (
+                  <div className="files-view">
+                    <Tree
+                      files={displayedFiles}
+                      activePath={selectedFile?.path ?? ""}
+                      onSelect={setSelectedPath}
+                    />
+                    <div className="editor-area">
+                      <div className="editor-head">
+                        <span>
+                          {selectedFile?.path ?? "No file selected"}
+                          {historyPreview
+                            ? " · 历史版本只读"
+                            : workspace.dirty
+                              ? " · 未保存"
+                              : ""}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={
+                            !artifact ||
+                            busy ||
+                            Boolean(historyPreview) ||
+                            !canUseCloud
+                          }
+                          onClick={() => void saveFile()}
+                        >
+                          <Save size={14} />
+                          {isSaving ? "保存中…" : "Save version"}
+                        </Button>
+                      </div>
+                      {selectedFile ? (
+                        <Suspense
+                          fallback={
+                            <div className="editor-empty">
+                              正在加载代码编辑器…
+                            </div>
+                          }
+                        >
+                          <Editor
+                            height="360px"
+                            theme="vs"
+                            path={`${workspace.documentId}/${historyPreview?.versionId ?? "draft"}/${selectedFile.path}`}
+                            language={language(selectedFile)}
+                            value={selectedFile.content}
+                            onChange={value => updateFile(value ?? "")}
+                            options={{
+                              readOnly: busy || Boolean(historyPreview),
+                              minimap: { enabled: false },
+                              fontSize: 13,
+                              wordWrap: "on",
+                              padding: { top: 12 },
+                            }}
+                          />
+                        </Suspense>
+                      ) : (
+                        <div className="editor-empty">
+                          创作后可浏览与编辑真实源码。
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {tab === "console" && (
+                  <div className="console-view">
+                    <div className="console-head">
+                      <span>当前版本的检查日志</span>
+                      <button
+                        disabled={!displayedArtifact}
+                        onClick={restartPreview}
+                      >
+                        <Play size={14} />
+                        重新运行
+                      </button>
+                    </div>
+                    <pre>{logs.join("\n")}</pre>
+                  </div>
+                )}
+                {tab === "spec" && (
+                  <div className="spec-view">
+                    <div className="design-summary">
+                      <p className="eyebrow">CURRENT SNAPSHOT</p>
+                      <h3>游戏文档与验收要求</h3>
+                      <p>预览、源码和 ZIP 使用相同的游戏内容。</p>
+                      {gameDesign ? (
+                        <>
+                          <h4>你的创作要求</h4>
+                          <p className="design-prompt">
+                            {gameDesign.originalPrompt}
+                          </p>
+                          <h4>用户验收要求</h4>
+                          <ul className="acceptance-list">
+                            {gameDesign.acceptance.map(criterion => (
+                              <li key={criterion.id}>
+                                <span>{criterion.requirement}</span>
+                                <small>
+                                  {criterion.evidence === "manual"
+                                    ? "需要亲自试玩确认 · 尚未自动测量"
+                                    : "需要独立操作验证 · 本面板不判定通过"}
+                                </small>
+                              </li>
+                            ))}
+                          </ul>
+                          {Array.isArray(gameDesign.inferredDefaults) &&
+                            gameDesign.inferredDefaults.length > 0 && (
+                              <>
+                                <h4>创作默认项</h4>
+                                {gameDesign.inferredDefaults
+                                  .filter(value => typeof value === "string")
+                                  .map((value, index) => (
+                                    <p key={index}>{value}</p>
+                                  ))}
+                              </>
+                            )}
+                        </>
+                      ) : (
+                        <p>
+                          当前游戏没有记录结构化验收要求，请根据原始创意亲自试玩确认。
+                        </p>
+                      )}
+                    </div>
+                    <pre>
+                      {displayedArtifact
+                        ? JSON.stringify(displayedArtifact, null, 2)
+                        : "尚未创建游戏。"}
+                    </pre>
+                  </div>
+                )}
+                {tab === "parameters" && (
+                  <GameParametersPanel
+                    artifact={displayedArtifact}
+                    disabled={busy || Boolean(historyPreview)}
+                    onEdit={updateParameter}
+                    onPrepare={() => {
+                      setPrompt(
+                        "保持当前游戏的玩法、美术和操作，添加或修复 arcane.config.json 可调参数。使用 schemaVersion: 1 与 parameters 数组，每项包含 id、label、type、value；number 必須提供 min 和 max，可选 step，color 使用六位十六进制颜色，boolean 使用布尔值。把现有的速度、难度和颜色等适合调整的值迁移到配置，游戏必须通过 fetch('arcane.config.json') 加载并真正使用参数。避免添加无效参数，不改变当前玩法。"
+                      );
+                      document
+                        .querySelector<HTMLTextAreaElement>(
+                          '[aria-label="游戏创作描述"]'
+                        )
+                        ?.focus();
+                    }}
+                  />
+                )}
+                {tab === "gates" && (
+                  <div className="gates-view">
+                    <div className="gates-col">
+                      <div className="gates-head">
+                        <ShieldCheck size={13} />
+                        源码检查
+                      </div>
+                      {currentValidation ? (
+                        currentValidation.checks.map(check => (
+                          <GateRow key={check.name} check={check} />
+                        ))
+                      ) : (
+                        <p className="gates-empty">
+                          {displayedArtifact
+                            ? "当前源码没有有效的静态检查结果。编辑后的旧检查已失效。"
+                            : "创作后显示源码检查。"}
+                        </p>
+                      )}
+                      {currentValidation?.stopReason &&
+                        currentValidation.stopReason !== "passed" && (
+                          <p className="gates-stop">
+                            修正停止原因：{currentValidation.stopReason} · 尝试{" "}
+                            {currentValidation.attempts} 次
+                          </p>
+                        )}
+                    </div>
+                    <div className="gates-col">
+                      <div className="gates-head">
+                        <Activity size={13} />
+                        预览观测
+                      </div>
+                      {probe ? (
+                        probe.checks.map(check => (
+                          <GateRow key={check.name} check={check} />
+                        ))
+                      ) : displayedArtifact ? (
+                        <p className="gates-empty running">
+                          {probeTimedOut ? (
+                            "未收到有效试玩报告，请重新运行预览。"
+                          ) : (
+                            <>
+                              <Loader2 className="animate-spin" size={13} />
+                              正在检查当前预览…
+                            </>
+                          )}
+                        </p>
+                      ) : (
+                        <p className="gates-empty">创作后自动运行。</p>
+                      )}
+                      {probe?.errors.length ? (
+                        <pre className="gates-errors">
+                          {probe.errors.join("\n")}
+                        </pre>
+                      ) : null}
+                      <small className="gates-empty">
+                        预览观测仅用于辅助诊断，不操作游戏，也不作为发布凭据。独立运行验证请打开顶部“发布”。
+                      </small>
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-          )}
-          {tab === "console" && (
-            <div className="console-view">
-              <div className="console-head">
-                <span>当前版本的检查日志</span>
-                <button disabled={!displayedArtifact} onClick={restartPreview}>
-                  <Play size={14} />
-                  重新运行
-                </button>
-              </div>
-              <pre>{logs.join("\n")}</pre>
-            </div>
-          )}
-          {tab === "spec" && (
-            <div className="spec-view">
-              <div className="design-summary">
-                <p className="eyebrow">CURRENT SNAPSHOT</p>
-                <h3>游戏文档与验收要求</h3>
-                <p>预览、源码和 ZIP 使用相同的游戏内容。</p>
-                {gameDesign ? (
-                  <>
-                    <h4>你的创作要求</h4>
-                    <p className="design-prompt">{gameDesign.originalPrompt}</p>
-                    <h4>用户验收要求</h4>
-                    <ul className="acceptance-list">
-                      {gameDesign.acceptance.map(criterion => (
-                        <li key={criterion.id}>
-                          <span>{criterion.requirement}</span>
-                          <small>
-                            {criterion.evidence === "manual"
-                              ? "需要亲自试玩确认 · 尚未自动测量"
-                              : "需要独立操作验证 · 本面板不判定通过"}
-                          </small>
-                        </li>
-                      ))}
-                    </ul>
-                    {Array.isArray(gameDesign.inferredDefaults) &&
-                      gameDesign.inferredDefaults.length > 0 && (
-                        <>
-                          <h4>创作默认项</h4>
-                          {gameDesign.inferredDefaults
-                            .filter(value => typeof value === "string")
-                            .map((value, index) => (
-                              <p key={index}>{value}</p>
-                            ))}
-                        </>
-                      )}
-                  </>
-                ) : (
-                  <p>
-                    当前游戏没有记录结构化验收要求，请根据原始创意亲自试玩确认。
-                  </p>
-                )}
-              </div>
-              <pre>
-                {displayedArtifact
-                  ? JSON.stringify(displayedArtifact, null, 2)
-                  : "尚未创建游戏。"}
-              </pre>
-            </div>
-          )}
-          {tab === "parameters" && (
-            <GameParametersPanel
-              artifact={displayedArtifact}
-              disabled={busy || Boolean(historyPreview)}
-              onEdit={updateParameter}
-              onPrepare={() => {
-                setPrompt(
-                  "保持当前游戏的玩法、美术和操作，添加或修复 arcane.config.json 可调参数。使用 schemaVersion: 1 与 parameters 数组，每项包含 id、label、type、value；number 必須提供 min 和 max，可选 step，color 使用六位十六进制颜色，boolean 使用布尔值。把现有的速度、难度和颜色等适合调整的值迁移到配置，游戏必须通过 fetch('arcane.config.json') 加载并真正使用参数。避免添加无效参数，不改变当前玩法。"
-                );
-                document
-                  .querySelector<HTMLTextAreaElement>(
-                    '[aria-label="游戏创作描述"]'
-                  )
-                  ?.focus();
-              }}
-            />
-          )}
-          {tab === "gates" && (
-            <div className="gates-view">
-              <div className="gates-col">
-                <div className="gates-head">
-                  <ShieldCheck size={13} />
-                  源码检查
-                </div>
-                {currentValidation ? (
-                  currentValidation.checks.map(check => (
-                    <GateRow key={check.name} check={check} />
-                  ))
-                ) : (
-                  <p className="gates-empty">
-                    {displayedArtifact
-                      ? "当前源码没有有效的静态检查结果。编辑后的旧检查已失效。"
-                      : "创作后显示源码检查。"}
-                  </p>
-                )}
-                {currentValidation?.stopReason &&
-                  currentValidation.stopReason !== "passed" && (
-                    <p className="gates-stop">
-                      修正停止原因：{currentValidation.stopReason} · 尝试{" "}
-                      {currentValidation.attempts} 次
-                    </p>
-                  )}
-              </div>
-              <div className="gates-col">
-                <div className="gates-head">
-                  <Activity size={13} />
-                  预览观测
-                </div>
-                {probe ? (
-                  probe.checks.map(check => (
-                    <GateRow key={check.name} check={check} />
-                  ))
-                ) : displayedArtifact ? (
-                  <p className="gates-empty running">
-                    {probeTimedOut ? (
-                      "未收到有效试玩报告，请重新运行预览。"
-                    ) : (
-                      <>
-                        <Loader2 className="animate-spin" size={13} />
-                        正在检查当前预览…
-                      </>
-                    )}
-                  </p>
-                ) : (
-                  <p className="gates-empty">创作后自动运行。</p>
-                )}
-                {probe?.errors.length ? (
-                  <pre className="gates-errors">{probe.errors.join("\n")}</pre>
-                ) : null}
-                <small className="gates-empty">
-                  预览观测仅用于辅助诊断，不操作游戏，也不作为发布凭据。独立运行验证请打开顶部“发布”。
-                </small>
-              </div>
-            </div>
-          )}
-          {tab === "run" && (
-            <div className="run-view">
-              <div>
-                <p className="eyebrow">PLAY YOUR GAME</p>
-                <h3>当前游戏已在上方运行</h3>
-                <p>
-                  编辑代码后预览同步更新。可以重新开始，或下载当前版本继续开发。
-                </p>
-              </div>
-              <Button disabled={!displayedArtifact} onClick={restartPreview}>
-                <Play size={15} />
-                重新开始
-              </Button>
-              <Button
-                disabled={!displayedArtifact}
-                onClick={() => void downloadZip()}
-              >
-                <Download size={15} />
-                下载 ZIP
-              </Button>
-            </div>
-          )}
+            </section>
+          </main>
+          <footer className="studio-footer">
+            <span>想象、创作，然后一起玩。</span>
+            <span>ARCANE GAME STUDIO</span>
+          </footer>
         </div>
-      </section>
+      </div>
+      <BillingPanel open={billingOpen} onClose={() => setBillingOpen(false)} />
     </div>
   );
 }

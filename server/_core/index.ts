@@ -13,6 +13,7 @@ import { logError } from "./logger";
 import { generationCapacity, stopGenerationAdmission } from "../game/access";
 import { validationCapacity, stopValidationAdmission } from "../game/validationAccess";
 import { runtimeCapabilities } from "./systemRouter";
+import { registerPaymentRoutes } from "../payments/routes";
 
 export function validateProductionConfig() {
   const required = ["JWT_SECRET", "VITE_APP_ID", "DATABASE_URL", "OAUTH_SERVER_URL", "BUILT_IN_FORGE_API_URL", "BUILT_IN_FORGE_API_KEY"];
@@ -31,6 +32,7 @@ export function createApplication() {
   const hops = Number(process.env.TRUST_PROXY_HOPS ?? 0);
   if (!Number.isInteger(hops) || hops < 0 || hops > 3) throw new Error("TRUST_PROXY_HOPS must be between 0 and 3.");
   app.set("trust proxy", hops);
+  registerPaymentRoutes(app);
   app.use(express.json({ limit: "4mb" }));
   app.use(express.urlencoded({ limit: "4mb", extended: false }));
   app.get("/api/health", (_req, res) => res.json({ ok: true }));

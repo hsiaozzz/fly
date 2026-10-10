@@ -366,6 +366,7 @@ async function switchProject(name) {
     .click();
 }
 async function editGame(label) {
+  await page.getByRole("button", { name: /^Files/ }).click();
   await page
     .locator(".monaco-editor textarea")
     .first()
@@ -376,6 +377,7 @@ async function editGame(label) {
   await waitGame(label);
 }
 async function saveGame() {
+  await page.getByRole("button", { name: /^Files/ }).click();
   await page.getByRole("button", { name: "Save version", exact: true }).click();
   await page
     .getByRole("button", { name: "Save version", exact: true })
@@ -513,9 +515,9 @@ try {
   await publishButton.click();
   await page.locator(".published-entry").waitFor();
   assert.match(publication.version.artifact.files[0].content, /A 发布版本/);
-  await mkdir("docs/implementation-2026-10-10", { recursive: true });
+  await mkdir("docs/ui-payments-2026-10-10", { recursive: true });
   await page.screenshot({
-    path: "docs/implementation-2026-10-10/project-publish.png",
+    path: "docs/ui-payments-2026-10-10/project-publish.png",
     fullPage: true,
   });
 
@@ -547,7 +549,7 @@ try {
     "手机controls不能覆盖iframe"
   );
   await page.screenshot({
-    path: "docs/implementation-2026-10-10/project-mobile.png",
+    path: "docs/ui-payments-2026-10-10/project-mobile.png",
     fullPage: true,
   });
   await page.getByRole("button", { name: "发布", exact: true }).click();
@@ -559,7 +561,7 @@ try {
     .waitFor();
   assert.deepEqual(errors, [], "项目工作流不得出现未捕获浏览器错误");
   await writeFile(
-    "docs/implementation-2026-10-10/project-flow-smoke.json",
+    "docs/ui-payments-2026-10-10/project-flow-smoke.json",
     JSON.stringify(
       {
         status: "passed",
