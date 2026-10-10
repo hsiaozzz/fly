@@ -1,0 +1,136 @@
+{
+  "source": "offline preset and authored layout browser fixtures",
+  "authored": {
+    "background": "rgb(35, 64, 81)",
+    "height": "900px",
+    "overflow": "visible"
+  },
+  "desktop": {
+    "host": {
+      "width": 848,
+      "height": 347.5
+    },
+    "content": {
+      "width": 848,
+      "height": 348,
+      "scrollX": 0,
+      "scrollY": 0,
+      "canvas": {
+        "x": 56.265625,
+        "y": 8,
+        "width": 404.171875,
+        "height": 331.984375,
+        "right": 460.4375,
+        "bottom": 339.984375,
+        "display": "block",
+        "visibility": "visible"
+      },
+      "start": {
+        "x": 524.71875,
+        "y": 231,
+        "width": 152.640625,
+        "height": 36,
+        "right": 677.359375,
+        "bottom": 267,
+        "display": "block",
+        "visibility": "visible"
+      },
+      "restart": {
+        "x": 685.359375,
+        "y": 231,
+        "width": 154.640625,
+        "height": 36,
+        "right": 840,
+        "bottom": 267,
+        "display": "block",
+        "visibility": "visible"
+      }
+    }
+  },
+  "mobile": {
+    "host": {
+      "width": 328,
+      "height": 428
+    },
+    "content": {
+      "width": 328,
+      "height": 428,
+      "scrollX": 0,
+      "scrollY": 0,
+      "canvas": {
+        "x": 37.390625,
+        "y": 99.78125,
+        "width": 253.203125,
+        "height": 207.984375,
+        "right": 290.59375,
+        "bottom": 307.765625,
+        "display": "block",
+        "visibility": "visible"
+      },
+      "start": {
+        "x": 6,
+        "y": 333.765625,
+        "width": 154,
+        "height": 32,
+        "right": 160,
+        "bottom": 365.765625,
+        "display": "block",
+        "visibility": "visible"
+      },
+      "restart": {
+        "x": 166,
+        "y": 333.765625,
+        "width": 156,
+        "height": 32,
+        "right": 322,
+        "bottom": 365.765625,
+        "display": "block",
+        "visibility": "visible"
+      }
+    }
+  },
+  "returnedDesktop": {
+    "host": {
+      "width": 848,
+      "height": 347.5
+    },
+    "content": {
+      "width": 848,
+      "height": 348,
+      "scrollX": 0,
+      "scrollY": 0,
+      "canvas": {
+        "x": 56.265625,
+        "y": 8,
+        "width": 404.171875,
+        "height": 331.984375,
+        "right": 460.4375,
+        "bottom": 339.984375,
+        "display": "block",
+        "visibility": "visible"
+      },
+      "start": {
+        "x": 524.71875,
+        "y": 231,
+        "width": 152.640625,
+        "height": 36,
+        "right": 677.359375,
+        "bottom": 267,
+        "display": "block",
+        "visibility": "visible"
+      },
+      "restart": {
+        "x": 685.359375,
+        "y": 231,
+        "width": 154.640625,
+        "height": 36,
+        "right": 840,
+        "bottom": 267,
+        "display": "block",
+        "visibility": "visible"
+      }
+    }
+  },
+  "forbiddenRequests": [],
+  "errors": []
+}

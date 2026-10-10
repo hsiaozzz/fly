@@ -8,17 +8,16 @@ ARCANE 将自然语言游戏设计转换为可编辑、可预览的 HTML5 项目
 
 ## 本地开发
 
-使用 Node.js 22.12+ 和 pnpm 10.4.1。复制 `.env.example` 为 `.env`，填写数据库、OAuth 和模型/对象存储服务配置。默认品牌 SVG 随项目提供，不需要对象存储。
+使用 Node.js 22.12+ 和 pnpm 10.4.1。本地试玩无需在线服务配置：启动工作台后点击「体验示例」，即可运行手工预置的接苹果游戏、修改源码和导出 ZIP。示例不调用模型，也不代表 AI 生成质量。默认品牌 SVG 随项目提供，不需要对象存储。
 
 ```sh
 git clone https://github.com/hsiaozzz/fly.git
 cd fly
-cp .env.example .env
-# 编辑 .env，填写独立开发环境配置
 pnpm install --frozen-lockfile
-pnpm db:migrate
 pnpm dev
 ```
+
+需要真实 AI 创作、登录和云端项目时，再复制 `.env.example` 为 `.env`，填写独立开发环境的数据库、OAuth 和模型/对象存储配置，并执行 `pnpm db:migrate`。配置缺失时，工作台会标出尚未开启的功能。
 
 MySQL 使用已提交的 migration。新增 schema 时在开发环境执行 `pnpm db:generate`，审阅生成的 SQL 后再运行 `pnpm db:migrate`。`db:push` 仅保留为 migrate 的兼容别名。生产 migration 前先备份，先在临时空库和现有库副本验证。已恢复缺失的初始 users migration；本次工作没有连接实际业务数据库，CI 已配置临时 MySQL 8.0 服务执行真实迁移和集成验证，实际 CI 结果见上方工作流；本地默认不会连接数据库。
 
@@ -30,12 +29,15 @@ pnpm test
 pnpm check:process-cleanup
 pnpm build
 pnpm check:production
+pnpm qa:example
 pnpm start
 ```
 
 测试默认全部使用 mock/本地数据，不调用真实 LLM、OAuth、对象存储。数据库集成用例默认跳过，只有显式 `ARCANE_TEST_DATABASE_URL` 才连接一次性测试库，并使用内存对象存储；不要把生产 URL 配到这个变量。CI 执行空库迁移、单元/集成测试、生产构建、编译后的浏览器 QA 和真实网页回归，并保存验证产物。`pnpm build` 分离开发 Vite chunk，生产入口不加载 Vite 或开发插件。`pnpm check:production` 创建不含 `.env` 或业务凭据的临时副本，沿用仓库的 registry／超时 `.npmrc`，仅安装生产依赖，检查服务导入、HTTP health 和编译后的浏览器 QA；需要先执行 `pnpm build` 并安装 Chromium 或设置 `ARCANE_BROWSER_EXECUTABLE`。它验证依赖和基础行为，不替代真实配置下的生产启动。dev/start 脚本兼容 Windows 与 POSIX shell。
 
 服务固定使用 `PORT`；端口占用会失败退出。生产缺少必需配置、签名 secret 少于 32 字符、数据库不可用或 migration 缺失时拒绝启动。`GET /api/health` 检查进程存活；`GET /api/ready` 检查数据库和必要 schema，并在关闭期间返回 503，同时分别返回正在生成与验证的数量。SIGTERM/SIGINT 停止接收新的生成与浏览器验证请求，最多排空 10 秒后关闭连接与数据库池。代理部署时设置准确的 `TRUST_PROXY_HOPS` 和 SSE 超时，生产使用 HTTPS。
+
+`GET /api/capabilities` 仅检查本地配置和浏览器路径，不连接模型、OAuth、数据库或对象存储，也不返回地址、密钥或环境变量值。配置存在不代表服务连通；实际连通性仍未验证。工作台据此提示未开启的功能：AI 创作、登录和云项目分别判断；查询失败或返回旧格式时暂停在线入口，已有本地草稿仍可编辑、试玩和下载。
 
 ## 生成与资源控制
 
@@ -67,7 +69,7 @@ pnpm cleanup:storage
 
 QA worker 隔离子进程、只传白名单环境、禁止网络/下载并设置超时。进程隔离与浏览器路由拦截**不能代替生产 OS 沙箱**；面对公开不可信用户，应将验证 worker 部署为独立低权限容器/用户，启用浏览器沙箱、系统级网络出口限制、内存/CPU配额和只读文件系统，禁用业务凭据，并把公共游戏放到独立无凭据域名。不要给 QA worker 或游戏运行域名业务数据库/云密钥。
 
-本次实施不自动部署、执行业务库 migration、写入外部存储或调用计费模型。真正上线前，需要在配置好的 staging 完成 OAuth、对象签名/删除、真实浏览器和升级 migration 的实际联调。
+本次实施没有部署公网服务、执行业务库 migration 或写入外部存储。在用户授权的 100,000 tokens 上限内尝试了 3 项真实模型评测，均返回 HTTP 401，没有生成成功或质量成绩；详见 [本地试玩与真实模型联调](docs/local-preview-2026-10-10/README.md)。真正上线前，需要在配置好的 staging 完成 OAuth、对象签名/删除、真实浏览器和升级 migration 的实际联调。
 
 ## 仓库导航
 

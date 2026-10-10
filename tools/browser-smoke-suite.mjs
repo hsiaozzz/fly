@@ -89,6 +89,7 @@ try {
   await response.arrayBuffer();
   await run("tools/workspace-smoke.mjs", baseUrl);
   await run("tools/project-smoke.mjs", baseUrl);
+  await run("tools/workspace-layout-smoke.mjs", baseUrl);
 } finally {
   process.removeListener("SIGINT", stop);
   process.removeListener("SIGTERM", stop);

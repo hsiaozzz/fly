@@ -20,7 +20,8 @@
     "db:migrate": "drizzle-kit migrate",
     "cleanup:storage": "tsx tools/cleanup-storage.ts",
     "check:production": "node tools/verify-production.mjs",
-    "check:process-cleanup": "node --test tools/owned-process-tree.test.mjs"
+    "check:process-cleanup": "node --test tools/owned-process-tree.test.mjs",
+    "qa:example": "tsx tools/example-smoke.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",

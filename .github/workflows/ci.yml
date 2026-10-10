@@ -59,6 +59,10 @@ jobs:
       - run: node tools/ci-browser-path.mjs
       - name: Production dependencies and compiled browser QA
         run: pnpm check:production | tee .ci/production-qa.log
+      - name: Example game rules in a real browser
+        run: pnpm qa:example | tee .ci/example-game.log
+        env:
+          ARCANE_EXAMPLE_EVIDENCE_DIR: .ci/example-game
       - name: Browser UI regression
         run: node tools/browser-smoke-suite.mjs | tee .ci/browser-ui.log
       - name: Preserve verification artifacts
@@ -71,6 +75,8 @@ jobs:
             docs/implementation-2026-10-10/project-flow-smoke.json
             docs/implementation-2026-10-10/*workspace*.png
             docs/implementation-2026-10-10/project-*.png
+            docs/local-preview-2026-10-10/ui/*.png
+            docs/local-preview-2026-10-10/ui/workspace-layout-results.json
           include-hidden-files: true
           retention-days: 14
           if-no-files-found: warn

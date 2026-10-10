@@ -12,6 +12,7 @@ import { checkDatabaseReadiness, closeDb } from "../db";
 import { logError } from "./logger";
 import { generationCapacity, stopGenerationAdmission } from "../game/access";
 import { validationCapacity, stopValidationAdmission } from "../game/validationAccess";
+import { runtimeCapabilities } from "./systemRouter";
 
 export function validateProductionConfig() {
   const required = ["JWT_SECRET", "VITE_APP_ID", "DATABASE_URL", "OAUTH_SERVER_URL", "BUILT_IN_FORGE_API_URL", "BUILT_IN_FORGE_API_KEY"];
@@ -33,6 +34,11 @@ export function createApplication() {
   app.use(express.json({ limit: "4mb" }));
   app.use(express.urlencoded({ limit: "4mb", extended: false }));
   app.get("/api/health", (_req, res) => res.json({ ok: true }));
+  // Configuration discovery stays available even when authentication or the
+  // database is unavailable. It never probes external services or returns keys.
+  app.get("/api/capabilities", (_req, res) => {
+    res.set("Cache-Control", "no-store").json(runtimeCapabilities());
+  });
   app.get("/api/ready", async (_req, res) => {
     try {
       await checkDatabaseReadiness();

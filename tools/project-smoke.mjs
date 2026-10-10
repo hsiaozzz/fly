@@ -17,6 +17,25 @@ const page = await context.newPage();
 const errors = [];
 const calls = [];
 page.on("pageerror", error => errors.push(error.message));
+await context.route("**/api/capabilities", route => {
+  const state = {
+    configured: true,
+    status: "configured",
+    verification: "unverified",
+  };
+  return route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({
+      schemaVersion: 1,
+      generation: state,
+      authentication: state,
+      cloudProjects: state,
+      browserQa: state,
+      database: state,
+      objectStorage: state,
+    }),
+  });
+});
 const source = label =>
   `<!doctype html><html><head><title>项目流程验收</title></head><body><button>${label}</button><script>document.querySelector('button').onclick=e=>e.target.textContent='已点击'</script></body></html>`;
 const artifactOf = (title, label) => ({
@@ -117,7 +136,7 @@ const failure = (message, path) => ({
 await context.route("**/*", route => {
   if (new URL(route.request().url()).origin !== new URL(baseUrl).origin)
     return route.abort();
-  return route.continue();
+  return route.fallback();
 });
 await context.route("**/api/trpc/**", async route => {
   const url = new URL(route.request().url());

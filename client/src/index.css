@@ -168,6 +168,37 @@ button {
   grid-template-columns: minmax(310px, 0.76fr) minmax(0, 1.55fr);
   min-height: 540px;
 }
+.capability-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  background: #13273b;
+  border-bottom: 1px solid #29435b;
+}
+.capability-notice strong {
+  color: #d8efff;
+  font-size: 13px;
+}
+.capability-notice p {
+  color: #a8bed2;
+  font-size: 12px;
+  margin-top: 5px;
+  line-height: 1.7;
+}
+.capability-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.capability-actions a {
+  color: #9dd8ff;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .chat-panel {
   border-right: 1px solid #1d3247;
   background: rgba(6, 17, 29, 0.75);
@@ -428,6 +459,11 @@ button {
   font-size: 12px;
   line-height: 1.75;
   margin: 0;
+}
+.preview-empty small {
+  margin-top: 12px;
+  color: #8ba8c0;
+  font-size: 11px;
 }
 .preview-empty button {
   margin-top: 18px;

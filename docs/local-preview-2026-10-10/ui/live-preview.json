@@ -1,0 +1,44 @@
+{
+  "testedAt": "2026-10-10T08:06:12.217Z",
+  "url": "http://localhost:3000/",
+  "httpStatus": 200,
+  "browser": "local-installed-chromium",
+  "chromiumSandbox": true,
+  "fixtureApi": false,
+  "checks": [
+    "workspace-renders",
+    "preset-opens",
+    "canvas-and-buttons-fit",
+    "game-starts-without-scrolling",
+    "zip-download"
+  ],
+  "preview": {
+    "width": 848,
+    "height": 348,
+    "scrollX": 0,
+    "scrollY": 0,
+    "elements": {
+      "#game-canvas": {
+        "x": 56.265625,
+        "y": 8,
+        "width": 404.171875,
+        "height": 331.984375
+      },
+      "#start": {
+        "x": 524.71875,
+        "y": 231,
+        "width": 152.640625,
+        "height": 36
+      },
+      "#restart": {
+        "x": 685.359375,
+        "y": 231,
+        "width": 154.640625,
+        "height": 36
+      }
+    }
+  },
+  "runtimeErrors": 0,
+  "generationRequests": 0,
+  "cloudWrites": 0
+}

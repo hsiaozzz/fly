@@ -1,0 +1,37 @@
+{
+  "testedAt": "2026-10-10",
+  "kind": "real-model-evaluation",
+  "budgetScope": "invocation",
+  "authorizedTokenUpperBound": 100000,
+  "tokensChargedConservatively": 29967,
+  "providerConfirmedUsage": null,
+  "artifactCount": 0,
+  "gameplayQuality": null,
+  "samples": [
+    {
+      "id": "catch-apples",
+      "tokensCharged": 14022,
+      "errorCategory": "model-failed",
+      "errorHttpStatus": 401,
+      "requirementsPassed": null,
+      "qualified": null
+    },
+    {
+      "id": "gomoku",
+      "tokensCharged": 2400,
+      "errorCategory": "model-failed",
+      "errorHttpStatus": 401,
+      "requirementsPassed": null,
+      "qualified": null
+    },
+    {
+      "id": "memory",
+      "tokensCharged": 13545,
+      "errorCategory": "model-failed",
+      "errorHttpStatus": 401,
+      "requirementsPassed": null,
+      "qualified": null
+    }
+  ],
+  "note": "All three samples received HTTP 401. Conservative charges do not establish provider billing. No playable artifact or gameplay quality result was produced."
+}

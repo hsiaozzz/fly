@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   Bot,
@@ -44,7 +45,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
+import { hasLoginConfiguration, startLogin } from "@/const";
+import { appCapabilitiesSchema } from "@shared/appCapabilities";
 import { trpc } from "@/lib/trpc";
 import { createGameSandbox } from "@/lib/gamePreview";
 import { readGameStream } from "@/lib/gameStream";
@@ -66,6 +68,7 @@ import GamePublishPanel from "@/components/GamePublishPanel";
 import GameParametersPanel from "@/components/GameParametersPanel";
 import ChatMarkdown from "@/components/ChatMarkdown";
 import { readGameDesign } from "@shared/game/design";
+import { createExampleArtifact } from "@shared/game/exampleArtifact";
 import { bundleGameArtifact } from "@shared/game/bundle";
 import {
   isProbeMessage,
@@ -209,11 +212,13 @@ function ProjectPicker({
   activeProjectId,
   onNew,
   onSelect,
+  cloudEnabled,
 }: {
   projects: Array<{ id: number; name: string }>;
   activeProjectId: number | null;
   onNew: () => void;
   onSelect: (id: number) => void;
+  cloudEnabled: boolean;
 }) {
   const [opened, setOpened] = useState(false);
   const active = projects.find(project => project.id === activeProjectId);
@@ -232,6 +237,7 @@ function ProjectPicker({
       {opened && (
         <div className="project-popover">
           <button
+            disabled={!cloudEnabled}
             onClick={() => {
               onNew();
               setOpened(false);
@@ -243,6 +249,7 @@ function ProjectPicker({
           {projects.map(project => (
             <button
               key={project.id}
+              disabled={!cloudEnabled}
               onClick={() => {
                 onSelect(project.id);
                 setOpened(false);
@@ -314,6 +321,54 @@ const UNCHECKED_BUILD: BuildReport = {
 
 export default function GameWorkspace() {
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
+  const capabilityQuery = useQuery({
+    queryKey: ["app-capabilities"],
+    queryFn: async ({ signal }) => {
+      const response = await fetch("/api/capabilities", {
+        credentials: "omit",
+        cache: "no-store",
+        signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]),
+      });
+      if (!response.ok) throw new Error("暂时无法确认在线功能。");
+      let body: unknown;
+      try {
+        body = await response.json();
+      } catch {
+        throw new Error("暂时无法确认在线功能。");
+      }
+      const result = appCapabilitiesSchema.safeParse(body);
+      if (!result.success) throw new Error("暂时无法确认在线功能。");
+      return result.data;
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30_000,
+  });
+  const checkingCapabilities =
+    capabilityQuery.isPending || capabilityQuery.isFetching;
+  const capabilityResult = appCapabilitiesSchema.safeParse(
+    capabilityQuery.data
+  );
+  const capabilities =
+    !checkingCapabilities &&
+    !capabilityQuery.isError &&
+    capabilityResult.success
+      ? capabilityResult.data
+      : null;
+  const canGenerate = Boolean(capabilities?.generation.configured);
+  const canLogin = Boolean(
+    capabilities?.authentication.configured && hasLoginConfiguration()
+  );
+  const canUseCloud = Boolean(
+    capabilities?.cloudProjects.configured &&
+      capabilities.authentication.configured &&
+      (isAuthenticated || hasLoginConfiguration())
+  );
+  const unavailableMessage = checkingCapabilities
+    ? "正在确认在线功能，请稍候。"
+    : !capabilities
+      ? "暂时无法确认在线功能，请重试。"
+      : "此站点尚未开启这项在线功能。";
   const {
     workspace,
     workspaceRef,
@@ -339,7 +394,7 @@ export default function GameWorkspace() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [savingDocumentId, setSavingDocumentId] = useState<string | null>(null);
-  const [status, setStatus] = useState("就绪 · 描述一个游戏创意");
+  const [status, setStatus] = useState("描述一个游戏创意");
   const [selectedPath, setSelectedPath] = useState("index.html");
   const [tab, setTab] = useState<DockTab>("files");
   const [previewMode, setPreviewMode] = useState<PreviewMode>("desktop");
@@ -381,11 +436,15 @@ export default function GameWorkspace() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
   const projectsQuery = trpc.game.listProjects.useQuery(undefined, {
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && canUseCloud,
   });
   const versionsQuery = trpc.game.versions.useQuery(
     { projectId: activeProjectId ?? -1, cursor: historyCursor ?? undefined },
-    { enabled: Boolean(activeProjectId && isAuthenticated && historyOpen) }
+    {
+      enabled: Boolean(
+        activeProjectId && isAuthenticated && canUseCloud && historyOpen
+      ),
+    }
   );
   const createProject = trpc.game.createProject.useMutation();
   const saveVersion = trpc.game.saveVersion.useMutation();
@@ -478,14 +537,15 @@ export default function GameWorkspace() {
     []
   );
   useEffect(() => {
-    if (!ready || !isAuthenticated || routeProjectRef.current) return;
+    if (!ready || !isAuthenticated || !canUseCloud || routeProjectRef.current)
+      return;
     routeProjectRef.current = true;
     const projectId = Number(
       new URLSearchParams(window.location.search).get("project")
     );
     if (Number.isSafeInteger(projectId) && projectId > 0)
       void selectProject(projectId);
-  }, [ready, isAuthenticated]);
+  }, [ready, isAuthenticated, canUseCloud]);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ block: "nearest" });
   }, [messages]);
@@ -510,6 +570,12 @@ export default function GameWorkspace() {
   }, [previewRunId]);
 
   function signIn() {
+    if (!canLogin)
+      return toast.info(
+        capabilities
+          ? "此站点尚未开启账号登录。你可以继续使用本地草稿。"
+          : unavailableMessage
+      );
     prepareLogin();
     startLogin();
   }
@@ -521,6 +587,11 @@ export default function GameWorkspace() {
     validationReceipt?: string
   ) {
     if (!snapshot.artifact) return null;
+    if (!canUseCloud) {
+      flushDrafts();
+      setStatus("云端保存暂不可用 · 本地草稿已保留");
+      return null;
+    }
     if (!isAuthenticated) {
       setStatus("草稿已保存在此浏览器 · 登录后可保存项目版本");
       return null;
@@ -592,6 +663,12 @@ export default function GameWorkspace() {
   ) {
     request = request.trim();
     if (!request || busy || taskRef.current) return;
+    if (!canGenerate)
+      return toast.info(
+        capabilities
+          ? "此站点尚未开启 AI 创作。已有草稿可继续编辑、试玩和下载。"
+          : unavailableMessage
+      );
     if (request.length > 2000)
       return toast.info("请将每次创作或修改描述控制在 2000 字以内。");
     if (historyPreview) return toast.info("请先返回当前草稿，再继续修改。");
@@ -793,6 +870,36 @@ export default function GameWorkspace() {
     setStatus("新游戏草稿已就绪 · 可从历史面板恢复原有草稿");
   }
 
+  function openExample() {
+    if (busy) return;
+    flushDrafts();
+    navigationRef.current += 1;
+    clearTransient();
+    setIsLoadingProject(false);
+    setHistoryOpen(false);
+    const document = emptyWorkspace(crypto.randomUUID());
+    commitWorkspace({
+      ...document,
+      artifact: createExampleArtifact(),
+      build: UNCHECKED_BUILD,
+      revision: 1,
+      dirty: true,
+      lastChange: "manual",
+      intent: "试玩和编辑预置的接苹果示例。",
+      messages: [
+        {
+          id: `${document.documentId}-example`,
+          role: "system",
+          content:
+            "预置示例 · 无需模型服务。这是随工作台提供的本地游戏，没有调用 AI 生成。可以试玩、编辑源码并下载 ZIP；你的其他草稿仍保留在历史面板。",
+        },
+      ],
+    });
+    flushDrafts();
+    setTab("files");
+    setStatus("预置示例已打开 · 无需模型服务 · 可编辑、试玩和下载");
+  }
+
   function selectLocalDraft(documentId: string) {
     const document = libraryRef.current.documents[documentId];
     if (!document) return;
@@ -817,6 +924,7 @@ export default function GameWorkspace() {
   }
 
   async function selectProject(projectId: number) {
+    if (!canUseCloud) return toast.info(unavailableMessage);
     const navigation = ++navigationRef.current;
     clearTransient();
     setHistoryOpen(false);
@@ -877,6 +985,7 @@ export default function GameWorkspace() {
   }
 
   async function createEmptyProject() {
+    if (!canUseCloud) return toast.info(unavailableMessage);
     if (!isAuthenticated) return signIn();
     newGame();
     const documentId = workspaceRef.current.documentId;
@@ -902,6 +1011,10 @@ export default function GameWorkspace() {
 
   async function saveFile() {
     if (!artifact || busy || historyPreview) return;
+    if (!canUseCloud) {
+      flushDrafts();
+      return toast.info("云端保存暂不可用，本地草稿已保留。");
+    }
     if (!isAuthenticated) {
       flushDrafts();
       toast.info("本地草稿已保留，登录后可保存云端版本。");
@@ -973,6 +1086,7 @@ export default function GameWorkspace() {
   }
 
   async function loadHistoricalVersion(versionId: number, restore: boolean) {
+    if (!canUseCloud) return toast.info(unavailableMessage);
     const source = workspaceRef.current;
     if (!source.projectId || busy) return;
     const navigation = navigationRef.current;
@@ -1038,6 +1152,7 @@ export default function GameWorkspace() {
     }
   }
   async function downloadSavedVersion(versionId: number) {
+    if (!canUseCloud) return toast.info(unavailableMessage);
     if (!activeProjectId) return;
     try {
       const archive = await downloadVersion.mutateAsync({
@@ -1075,6 +1190,7 @@ export default function GameWorkspace() {
           activeProjectId={activeProjectId}
           onNew={() => void createEmptyProject()}
           onSelect={id => void selectProject(id)}
+          cloudEnabled={canUseCloud}
         />
         <div className="header-actions">
           <a className="explore-link" href="/explore">
@@ -1091,6 +1207,7 @@ export default function GameWorkspace() {
           <Button
             variant="ghost"
             size="sm"
+            disabled={!canUseCloud}
             onClick={() => setPublishOpen(value => !value)}
           >
             <ShieldCheck size={15} />
@@ -1111,21 +1228,84 @@ export default function GameWorkspace() {
               {user?.name ?? "Creator"}
             </button>
           ) : (
-            <Button variant="outline" size="sm" onClick={signIn}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={signIn}
+              disabled={!canLogin}
+            >
               登录
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={busy}
+            onClick={openExample}
+            title="预置示例 · 无需模型服务"
+          >
+            <Gamepad2 size={15} />
+            <span>体验示例</span>
+          </Button>
           <Button size="sm" className="new-game" onClick={newGame}>
             <Plus size={15} />
             New Game
           </Button>
         </div>
       </header>
+      {(!canGenerate || !canLogin || !canUseCloud) && (
+        <section
+          className="capability-notice"
+          aria-label="站点功能状态"
+          role="status"
+        >
+          <div>
+            <strong>
+              {checkingCapabilities
+                ? "正在确认在线功能"
+                : !capabilities
+                  ? "暂时无法确认在线功能"
+                  : "本地工作台可用"}
+            </strong>
+            <p>
+              {!capabilities
+                ? "在线功能确认后才能使用。已有草稿仍可编辑、试玩和下载。"
+                : [
+                    !canGenerate && "AI 创作尚未开启",
+                    !canLogin && "账号登录尚未开启",
+                    !canUseCloud && "云端项目暂不可用",
+                  ]
+                    .filter(Boolean)
+                    .join("；") + "。已有草稿可继续编辑、试玩和下载。"}
+            </p>
+          </div>
+          <div className="capability-actions">
+            {!capabilities && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={checkingCapabilities}
+                onClick={() => void capabilityQuery.refetch()}
+              >
+                重新检查
+              </Button>
+            )}
+            <a
+              href="https://github.com/hsiaozzz/fly#本地开发"
+              target="_blank"
+              rel="noreferrer"
+            >
+              站点设置帮助
+            </a>
+          </div>
+        </section>
+      )}
       {publishOpen && (
         <GamePublishPanel
           artifact={artifact}
           userId={user?.id}
-          disabled={busy || Boolean(historyPreview)}
+          disabled={busy || Boolean(historyPreview) || !canUseCloud}
+          loginEnabled={canLogin}
           onSave={saveForPublish}
           onSignIn={signIn}
           onClose={() => setPublishOpen(false)}
@@ -1143,7 +1323,9 @@ export default function GameWorkspace() {
             <Button
               size="sm"
               onClick={saveFile}
-              disabled={!artifact || busy || Boolean(historyPreview)}
+              disabled={
+                !artifact || busy || Boolean(historyPreview) || !canUseCloud
+              }
             >
               <Save size={14} />
               保存版本
@@ -1152,10 +1334,14 @@ export default function GameWorkspace() {
               <X size={16} />
             </button>
           </div>
-          {!isAuthenticated ? (
+          {!canUseCloud ? (
+            <p>云端版本暂不可用。你可以从下方继续打开本地草稿。</p>
+          ) : !isAuthenticated ? (
             <p>
               登录后可保存、预览和恢复项目版本。
-              <button onClick={signIn}>登录</button>
+              <button onClick={signIn} disabled={!canLogin}>
+                登录
+              </button>
             </p>
           ) : !activeProjectId ? (
             <p>保存当前草稿后自动创建项目。也可以从项目菜单创建新项目。</p>
@@ -1211,7 +1397,7 @@ export default function GameWorkspace() {
               ))}
             </div>
           )}
-          {activeProjectId && (
+          {activeProjectId && canUseCloud && (
             <div className="history-pagination">
               <button
                 className="history-refresh"
@@ -1273,7 +1459,7 @@ export default function GameWorkspace() {
           </Button>
           <Button
             size="sm"
-            disabled={busy}
+            disabled={busy || !canUseCloud}
             onClick={() =>
               void loadHistoricalVersion(historyPreview.versionId, true)
             }
@@ -1315,6 +1501,8 @@ export default function GameWorkspace() {
                 <div className="avatar">
                   {message.role === "user" ? (
                     <UserRound size={15} />
+                  ) : message.role === "system" ? (
+                    <Gamepad2 size={16} />
                   ) : (
                     <Bot size={16} />
                   )}
@@ -1428,7 +1616,7 @@ export default function GameWorkspace() {
                 </Button>
                 <Button
                   size="sm"
-                  disabled={busy}
+                  disabled={busy || !canGenerate}
                   onClick={submitClarifyAnswers}
                 >
                   按此创作
@@ -1438,11 +1626,14 @@ export default function GameWorkspace() {
           )}
           {!artifact && (
             <div className="suggestions">
-              <button disabled={busy} onClick={() => handleSend(SAMPLE_PROMPT)}>
+              <button
+                disabled={busy || !canGenerate}
+                onClick={() => handleSend(SAMPLE_PROMPT)}
+              >
                 跑酷吃金币
               </button>
               <button
-                disabled={busy}
+                disabled={busy || !canGenerate}
                 onClick={() =>
                   handleSend(
                     "做一个竖屏太空射击游戏，飞船左右移动发射激光消灭小行星，有血条"
@@ -1452,7 +1643,7 @@ export default function GameWorkspace() {
                 太空射击
               </button>
               <button
-                disabled={busy}
+                disabled={busy || !canGenerate}
                 onClick={() => handleSend("做一个记忆翻牌小游戏，点击卡片配对")}
               >
                 记忆翻牌
@@ -1530,6 +1721,7 @@ export default function GameWorkspace() {
                   onClick={() => handleSend()}
                   disabled={
                     !prompt.trim() ||
+                    !canGenerate ||
                     busy ||
                     Boolean(clarifyQuestions) ||
                     Boolean(historyPreview)
@@ -1605,11 +1797,9 @@ export default function GameWorkspace() {
                   </span>
                   <h3>把你的创意变成游戏</h3>
                   <p>描述玩法和风格，创作后即可试玩和继续修改。</p>
-                  <button
-                    disabled={busy}
-                    onClick={() => handleSend(SAMPLE_PROMPT)}
-                  >
-                    <Sparkles size={15} />
+                  <small>预置示例 · 无需模型服务</small>
+                  <button disabled={busy} onClick={openExample}>
+                    <Gamepad2 size={15} />
                     体验示例
                   </button>
                 </div>
@@ -1786,7 +1976,12 @@ export default function GameWorkspace() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    disabled={!artifact || busy || Boolean(historyPreview)}
+                    disabled={
+                      !artifact ||
+                      busy ||
+                      Boolean(historyPreview) ||
+                      !canUseCloud
+                    }
                     onClick={() => void saveFile()}
                   >
                     <Save size={14} />

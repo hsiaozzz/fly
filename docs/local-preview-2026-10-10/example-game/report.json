@@ -1,0 +1,316 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "artifactHash": "d332b7a631f6798a8fd910834b52cfd81a1729e9a804e58af19e0b668a277efd",
+  "method": "browser-scenario",
+  "chromiumSandbox": true,
+  "gameSandbox": "allow-scripts",
+  "modelsCalled": 0,
+  "testedAt": "2026-10-10T08:05:17.541Z",
+  "scenarios": [
+    {
+      "mode": "layout-only",
+      "viewport": {
+        "width": 848,
+        "height": 348
+      },
+      "layout": {
+        "scrollX": 0,
+        "scrollY": 0,
+        "elements": [
+          {
+            "selector": "#game-canvas",
+            "x": 56.265625,
+            "y": 8,
+            "width": 404.171875,
+            "height": 331.984375,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#start",
+            "x": 524.71875,
+            "y": 231,
+            "width": 152.640625,
+            "height": 36,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#restart",
+            "x": 685.359375,
+            "y": 231,
+            "width": 154.640625,
+            "height": 36,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#move-left",
+            "x": 524.71875,
+            "y": 275,
+            "width": 122.640625,
+            "height": 44,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#move-right",
+            "x": 717.359375,
+            "y": 275,
+            "width": 122.640625,
+            "height": 44,
+            "visible": true,
+            "hit": true
+          }
+        ]
+      },
+      "checks": [
+        "complete-canvas-without-scroll",
+        "start-restart-reachable-without-scroll",
+        "direction-controls-reachable-without-scroll",
+        "painted-pixel-scene",
+        "no-runtime-errors",
+        "offline"
+      ],
+      "runtimeErrors": 0,
+      "networkRequests": 0
+    },
+    {
+      "mode": "layout-only",
+      "viewport": {
+        "width": 330,
+        "height": 430
+      },
+      "layout": {
+        "scrollX": 0,
+        "scrollY": 0,
+        "elements": [
+          {
+            "selector": "#game-canvas",
+            "x": 37.171875,
+            "y": 99.78125,
+            "width": 255.640625,
+            "height": 209.984375,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#start",
+            "x": 6,
+            "y": 335.765625,
+            "width": 155,
+            "height": 32,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#restart",
+            "x": 167,
+            "y": 335.765625,
+            "width": 157,
+            "height": 32,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#move-left",
+            "x": 6,
+            "y": 371.765625,
+            "width": 124,
+            "height": 34,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#move-right",
+            "x": 200,
+            "y": 371.765625,
+            "width": 124,
+            "height": 34,
+            "visible": true,
+            "hit": true
+          }
+        ]
+      },
+      "checks": [
+        "complete-canvas-without-scroll",
+        "start-restart-reachable-without-scroll",
+        "direction-controls-reachable-without-scroll",
+        "painted-pixel-scene",
+        "no-runtime-errors",
+        "offline"
+      ],
+      "runtimeErrors": 0,
+      "networkRequests": 0
+    },
+    {
+      "mode": "gameplay",
+      "viewport": {
+        "width": 960,
+        "height": 640
+      },
+      "input": "keyboard",
+      "layout": {
+        "scrollX": 0,
+        "scrollY": 0,
+        "elements": [
+          {
+            "selector": "#game-canvas",
+            "x": 30,
+            "y": 97.203125,
+            "width": 542.453125,
+            "height": 445.578125,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#start",
+            "x": 588.453125,
+            "y": 523,
+            "width": 165.765625,
+            "height": 36,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#restart",
+            "x": 762.21875,
+            "y": 523,
+            "width": 167.78125,
+            "height": 36,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#move-left",
+            "x": 588.453125,
+            "y": 567,
+            "width": 135.765625,
+            "height": 44,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#move-right",
+            "x": 794.21875,
+            "y": 567,
+            "width": 135.78125,
+            "height": 44,
+            "visible": true,
+            "hit": true
+          }
+        ]
+      },
+      "checks": [
+        "complete-canvas-without-scroll",
+        "start-restart-reachable-without-scroll",
+        "start-gate",
+        "real-left-right-input",
+        "catch-10-win",
+        "miss-3-lose",
+        "restart-resets-win-and-loss",
+        "no-runtime-errors",
+        "offline"
+      ],
+      "win": {
+        "state": "won",
+        "caught": 10,
+        "missed": 0,
+        "status": "胜利！你接到了 10 个苹果。"
+      },
+      "loss": {
+        "state": "lost",
+        "caught": 0,
+        "missed": 3,
+        "status": "失败：漏掉了 3 个苹果，重新开始再试一次。"
+      },
+      "runtimeErrors": 0,
+      "networkRequests": 0
+    },
+    {
+      "mode": "gameplay",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "input": "touch",
+      "layout": {
+        "scrollX": 0,
+        "scrollY": 0,
+        "elements": [
+          {
+            "selector": "#game-canvas",
+            "x": 10,
+            "y": 147,
+            "width": 370,
+            "height": 303.921875,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#start",
+            "x": 10,
+            "y": 498.921875,
+            "width": 179,
+            "height": 46,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#restart",
+            "x": 199,
+            "y": 498.921875,
+            "width": 181,
+            "height": 46,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#move-left",
+            "x": 10,
+            "y": 556.921875,
+            "width": 141,
+            "height": 58,
+            "visible": true,
+            "hit": true
+          },
+          {
+            "selector": "#move-right",
+            "x": 239,
+            "y": 556.921875,
+            "width": 141,
+            "height": 58,
+            "visible": true,
+            "hit": true
+          }
+        ]
+      },
+      "checks": [
+        "complete-canvas-without-scroll",
+        "start-restart-reachable-without-scroll",
+        "start-gate",
+        "real-left-right-input",
+        "catch-10-win",
+        "miss-3-lose",
+        "restart-resets-win-and-loss",
+        "no-runtime-errors",
+        "offline"
+      ],
+      "win": {
+        "state": "won",
+        "caught": 10,
+        "missed": 0,
+        "status": "胜利！你接到了 10 个苹果。"
+      },
+      "loss": {
+        "state": "lost",
+        "caught": 0,
+        "missed": 3,
+        "status": "失败：漏掉了 3 个苹果，重新开始再试一次。"
+      },
+      "runtimeErrors": 0,
+      "networkRequests": 0
+    }
+  ]
+}

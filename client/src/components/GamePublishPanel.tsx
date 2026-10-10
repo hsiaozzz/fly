@@ -26,6 +26,7 @@ export default function GamePublishPanel({
   artifact,
   userId,
   disabled,
+  loginEnabled = true,
   onSave,
   onSignIn,
   onClose,
@@ -33,6 +34,7 @@ export default function GamePublishPanel({
   artifact: GameArtifact | null;
   userId?: number;
   disabled: boolean;
+  loginEnabled?: boolean;
   onSave: (receipt: string) => Promise<number | null>;
   onSignIn: () => void;
   onClose: () => void;
@@ -195,7 +197,9 @@ export default function GamePublishPanel({
         发布前会在独立浏览器中构建并操作当前游戏。游戏是否好玩、规则是否符合预期，仍需创作者亲自试玩确认。
       </p>
       {!userId ? (
-        <Button onClick={onSignIn}>登录后验证与发布</Button>
+        <Button onClick={onSignIn} disabled={!loginEnabled || disabled}>
+          登录后验证与发布
+        </Button>
       ) : (
         <div className="publish-controls">
           <Button
