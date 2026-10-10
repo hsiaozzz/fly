@@ -1,0 +1,25 @@
+# Project TODO
+
+- [x] 建立 MySQL/Drizzle 数据模型：projects、projectVersions、messages、gameFiles、builds，并保留模板提供的 users 表。
+- [x] 添加 GameSpec JSON Schema、示例规范、规范化器与可测试的验证/修复流程。
+- [x] 实现支持 Flappy Bird、Top-down Shooter 与 Endless Runner 的 GameSpec→多文件 Phaser+TypeScript+Vite 工程编译器。
+- [x] 生成包含 package.json、tsconfig.json、vite.config.ts、src/scenes、src/entities、src/systems、assets、README.md 的可构建项目文件集。
+- [x] 实现安全的预览产物生成与 iframe Sandbox 展示，含桌面, 移动, 全屏, 重载和重新开始控制。
+- [x] 实现多 Agent 服务层：Planner、GameSpec Generator、Validator、Compiler、Patch Agent、Debugger，并将 LLM 输出转换为受控数据结构。
+- [x] 实现对话工作流，提供流式生成状态、加载/错误状态、停止操作与继续修改游戏能力。
+- [x] 实现 create、modify、delete、rename 四类 Patch 操作并在修改时创建独立版本。
+- [x] 实现构建日志、最多三次受控自动修复重试和失败状态展示。
+- [x] 使用 S3 保存版本化游戏文件与可下载 ZIP，并通过后端生成完整工程压缩包。
+- [x] 实现项目创建、切换、历史版本预览、恢复和下载；使用 Manus OAuth 识别项目所有者。
+- [x] 构建左右分栏游戏工作台、文件树、代码编辑、控制台、GameSpec、运行和下载标签页。
+- [x] 使用现有组件或合适替代方案实现代码编辑器，并确保文件修改可保存、可预览、可导出。
+- [x] 为 GameSpec 验证、编译器, Patch 和核心服务编写 Vitest 单元测试。
+- [x] 执行类型检查、单元测试、界面截图验证与生成工程构建验证。
+- [x] 保存完成版本并提供项目访问与发布说明。
+- [x] 为预览区增加显式 Restart Game 控制，使用户无需等待 Game Over 即可重置当前沙盒游戏。
+- [x] 新增后端历史版本 ZIP 下载接口，并在版本记录中暴露受认证的归档下载地址。
+- [x] 在历史版本管理中提供 Preview、Restore 与 Download 操作，并完成接口与界面流程验证。
+- [x] 将平台默认动作游戏模板升级为 Moto X3M 风格的物理摩托车特技闯关引擎。
+- [ ] 将网站名称统一改为 ARCANE，并更新浏览器标题与品牌文案。
+- [ ] 使用用户提供的牛油果 SVG 更新网站 favicon、顶部 Logo 与品牌资源引用。
+- [ ] 验证桌面与移动端品牌显示，并保存品牌更新检查点。

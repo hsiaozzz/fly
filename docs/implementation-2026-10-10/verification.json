@@ -1,0 +1,141 @@
+{
+  "verifiedAt": "2026-10-10T04:08:24.684904+00:00",
+  "status": "local_checks_passed_with_explicit_skips",
+  "environment": {
+    "node": "Windows Node.js v26.7.0 invoked from WSL",
+    "browser": "local headless Microsoft Edge",
+    "workspace": "/mnt/e/code/arcanegame"
+  },
+  "checks": [
+    {
+      "name": "TypeScript including tools",
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "exitCode": 0,
+      "result": "passed"
+    },
+    {
+      "name": "full Vitest suite",
+      "command": "node node_modules/vitest/vitest.mjs run",
+      "exitCode": 0,
+      "passed": 192,
+      "skipped": 4,
+      "passedFiles": 32,
+      "skippedFiles": 1,
+      "skipReason": "Real MySQL integration cases: no disposable test database configured."
+    },
+    {
+      "name": "production frontend build",
+      "command": "node node_modules/vite/bin/vite.js build",
+      "exitCode": 0,
+      "result": "passed",
+      "mainBundleKB": 955.5,
+      "mainGzipKB": 283.94,
+      "lazyMonacoKB": 3977.37,
+      "lazyMonacoGzipKB": 1026.53
+    },
+    {
+      "name": "production server and worker build",
+      "command": "node node_modules/esbuild/bin/esbuild server/_core/index.ts server/game/browserQaWorker.ts tools/qa-smoke.ts --platform=node --packages=external --bundle --splitting --entry-names=[name] --format=esm --outdir=dist",
+      "exitCode": 0,
+      "result": "passed"
+    },
+    {
+      "name": "production UI browser suite",
+      "command": "node tools/browser-smoke-suite.mjs",
+      "exitCode": 0,
+      "result": "passed",
+      "modelAndApi": "mocked",
+      "actualBrowser": true,
+      "workspaceChecks": [
+        "editing and live preview",
+        "ZIP/source/manifest snapshot identity",
+        "reload and draft recovery",
+        "cancel/new game stale response isolation",
+        "history",
+        "forged postMessage rejection",
+        "mobile real click feedback"
+      ],
+      "projectChecks": [
+        "A/B dirty draft isolation",
+        "config parameters affect actual preview and enforce range",
+        "history preview and failed restore preserve dirty draft",
+        "failed save preservation",
+        "delayed save/project isolation",
+        "stale generation rejection",
+        "publish requires receipt and manual confirmation",
+        "save failure blocks publication",
+        "Explore/Play/Remix",
+        "mobile preview layout",
+        "revoke removes access"
+      ],
+      "projectApiCalls": 33
+    },
+    {
+      "name": "compiled browser QA with production dependencies only",
+      "command": "node dist/qa-smoke.js in tmp/production-check",
+      "exitCode": 0,
+      "result": "all expected outcomes matched",
+      "cases": 16,
+      "browserCases": 15,
+      "inputGroups": 60,
+      "viteInstalled": false,
+      "evidence": "qa-smoke-results.json",
+      "compiledQaSha256": {
+        "browserQaWorker.js": "d1ab896314302dda721ea5910d51f66cc81690a6d353c94aa57050223e98479f",
+        "chunk-GMHVZY7C.js": "e6f353b4e97a5579c4db9981cedf0ea118d44d3cc0ad7de95e12a64c4fc72e0f",
+        "chunk-NGYSEI47.js": "1a3837c7ff7ff9bd7a7e4d7154fd2385f0504779179b860f4c9e4a81527133b2",
+        "qa-smoke.js": "10579878c4417a20d4b6701b900652b3d33d00f0f9001a2ab6d1eb95aa52e6de",
+        "vite-POT3G3H7.js": "19a55c7ee26c8d542cc61c43938bcae081d9467eda7801fbd35b68b1aa60317e"
+      }
+    },
+    {
+      "name": "production-only application import and HTTP health",
+      "command": "node check-production.mjs in tmp/production-check",
+      "exitCode": 0,
+      "result": "passed",
+      "nodeEnv": "test",
+      "configuredProductionBoot": false,
+      "viteInstalled": false
+    },
+    {
+      "name": "evaluation default never spends model tokens",
+      "command": "node --import tsx tools/evaluate-games.ts --limit 1 --artifacts tmp/eval-default/artifacts --out tmp/eval-default/results",
+      "exitCode": 0,
+      "modelCallsEnabled": false,
+      "tokensCharged": 0,
+      "missingArtifact": "recorded as error, no fallback generation",
+      "modelQualityBenchmark": false
+    }
+  ],
+  "notRun": [
+    "real model 30-prompt quality/cost/latency benchmark",
+    "real MySQL migrations and integration tests",
+    "OAuth and external object-storage integration",
+    "configured production boot or deployment",
+    "remote CI"
+  ],
+  "remainingWork": [
+    "per-game acceptance automation",
+    "asset generation/upload/provenance and manifest",
+    "production OS sandbox for untrusted browser games",
+    "durable jobs, shared quotas and accounting",
+    "moderation and scalable discovery",
+    "3D, multiplayer and world-model experiments"
+  ],
+  "sourceSha256": {
+    "server/_core/index.ts": "64c81f5a14129d84dbcbf97a05f015d46d7ccf2228cdbfd1a122082ab4518a39",
+    "server/routers.ts": "a40be2a5ebbbfb8a91066d6924ba933923eb89f8e9d0224642b6555e2108307b",
+    "server/game/browserQaWorker.ts": "bbb37b8a42bb33ac6b84b9556cca099207fb3109e1f45cf11ab4736b924e5ff4",
+    "server/game/freegen.ts": "ba677fb17bd1330eb8f79f9d9f538ba6b6018a99dda5994090d0725cbecc5550",
+    "shared/game/artifact.ts": "853967522b7fa1c68abceffa94c6163b8da2feef6db3b7487d62b280eef59ba3",
+    "shared/game/bundle.ts": "475e686b872683e32a9ac689377c2b130a4cfb9a20da097133ae5827b95d9005",
+    "tools/qa-smoke.ts": "13ec1184ee45964d3aadeac77c0508338c2ca91b79cc81de9002776c3e1df293",
+    "tools/workspace-smoke.mjs": "856fcde3d8593e8a6c4b23e71e776952b082245234f18e960b12a46eec9237f5",
+    "tools/evaluate-games.ts": "a678306fa24e76564765025ef1a1cdfcf14b3cf1facfdcbd6e39b96b3880a9af"
+  },
+  "repository": {
+    "baseline": "local verified implementation baseline",
+    "remoteOperations": false
+  },
+  "limits": "Passing framework fixtures and mocked UI tests do not establish real-model quality or production readiness."
+}

@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1786518754606,
+      "tag": "0000_normal_stingray",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1786519108571,
+      "tag": "0001_clumsy_la_nuit",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1786519820870,
+      "tag": "0002_aspiring_blur",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1791599012453,
+      "tag": "0003_handy_ser_duncan",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1791599247289,
+      "tag": "0004_swift_skullbuster",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1791601928222,
+      "tag": "0005_fine_aqueduct",
+      "breakpoints": true
+    }
+  ]
+}

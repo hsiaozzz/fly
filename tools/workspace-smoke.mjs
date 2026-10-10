@@ -1,0 +1,86 @@
+import assert from "node:assert/strict";
+import { mkdir, readFile } from "node:fs/promises";
+import { chromium } from "playwright-core";
+import JSZip from "jszip";
+
+const baseUrl = process.env.ARCANE_TEST_BASE_URL || "http://127.0.0.1:3090";
+const executablePath = process.env.ARCANE_BROWSER_EXECUTABLE || "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+const browser = await chromium.launch({ executablePath, headless: true });
+const context = await browser.newContext({ acceptDownloads: true });
+const page = await context.newPage();
+const errors = [];
+page.on("pageerror", error => errors.push(error.message));
+await context.route("**/api/trpc/**", async route => {
+  const procedures = new URL(route.request().url()).pathname.split("/api/trpc/")[1].split(",");
+  await route.fulfill({ contentType: "application/json", body: JSON.stringify(procedures.map(() => ({ result: { data: { json: null } } }))) });
+});
+let pending;
+const source = label => `<!doctype html><html><head><title>浏览器验收</title></head><body><button id="button">${label}</button><script>document.querySelector('button').addEventListener('click',e=>e.target.textContent='已点击')</script></body></html>`;
+const artifact = { title: "工作台验收样例", description: "fixture", controls: ["点击按钮"], files: [{ path: "index.html", content: source("原始按钮"), language: "html" }] };
+await context.route("**/api/game/stream", async route => {
+  const input = route.request().postDataJSON();
+  if (input.prompt.includes("慢任务")) await new Promise(resolve => { pending = resolve; });
+  const result = { artifact, build: { status: "pending", attempts: 1, repairApplied: false, logs: ["浏览器验收待执行"] }, trace: [{ agent: "Creator", status: "done", detail: "已生成" }], assistantMessage: "样例已生成，浏览器验收待完成", runId: input.runId };
+  const event = (event, data) => `event: ${event}\r\ndata: ${JSON.stringify(data)}\r\n\r\n`;
+  await route.fulfill({ contentType: "text/event-stream", body: event("status", { agent: "Creator", status: "running", detail: "正在生成" }) + event("complete", result) }).catch(() => {});
+});
+try {
+  await page.goto(baseUrl);
+  const composer = page.locator(".composer textarea");
+  await composer.fill("制作点击按钮游戏");
+  await page.getByRole("button", { name: "生成游戏", exact: true }).click();
+  await page.getByRole("heading", { name: artifact.title, exact: true }).waitFor();
+  await page.frameLocator('iframe[title="游戏隔离预览"]').getByRole("button", { name: "原始按钮", exact: true }).waitFor();
+  await page.getByRole("button", { name: "停止", exact: true }).waitFor({ state: "hidden" });
+  await page.locator(".monaco-editor textarea").first().waitFor({ timeout: 30_000 });
+  await page.locator(".monaco-editor .view-lines").first().click();
+  await page.keyboard.press("Control+A");
+  await page.keyboard.insertText(source("编辑后按钮"));
+  await page.waitForTimeout(300);
+  await page.frameLocator('iframe[title="游戏隔离预览"]').getByRole("button", { name: "编辑后按钮", exact: true }).waitFor();
+  await page.evaluate(() => window.postMessage({ source: "arcane-runtime-probe", report: {} }, "*"));
+  const downloadEvent = page.waitForEvent("download");
+  await page.getByRole("button", { name: /Download ZIP/ }).click();
+  const download = await downloadEvent;
+  const zip = await JSZip.loadAsync(await readFile(await download.path()));
+  assert.match(await zip.file("index.html").async("string"), /编辑后按钮/);
+  assert.match(await zip.file("__arcane__/play.html").async("string"), /编辑后按钮/);
+  const exported = JSON.parse(await zip.file("__arcane__/artifact.json").async("string"));
+  assert.match(exported.files[0].content, /编辑后按钮/);
+  assert.equal(await zip.file("index.html").async("string"), exported.files[0].content, "导出manifest与源文件逐字一致");
+  await page.waitForTimeout(900);
+  const draft = await page.evaluate(() => {
+    const library = JSON.parse(localStorage.getItem("arcane.workspace.v2.guest"));
+    return library.documents[library.activeDocumentId].artifact;
+  });
+  assert.deepEqual(draft, exported, "恢复草稿与导出同一个快照");
+  await page.reload();
+  await page.frameLocator('iframe[title="游戏隔离预览"]').getByRole("button", { name: "编辑后按钮", exact: true }).waitFor();
+  await page.getByRole("button", { name: /New Game/ }).click();
+  await composer.fill("慢任务制作按钮游戏");
+  await page.getByRole("button", { name: "生成游戏", exact: true }).click();
+  await page.getByRole("button", { name: "停止", exact: true }).waitFor();
+  await page.getByRole("button", { name: /New Game/ }).click();
+  pending?.();
+  await page.waitForTimeout(500);
+  assert.equal(await page.locator('iframe[title="游戏隔离预览"]').count(), 0, "取消后的旧结果不能覆盖新草稿");
+  await page.getByRole("button", { name: "历史", exact: true }).click();
+  await page.getByRole("button", { name: new RegExp(artifact.title) }).first().click();
+  await page.frameLocator('iframe[title="游戏隔离预览"]').getByRole("button", { name: "编辑后按钮", exact: true }).waitFor();
+  await mkdir("docs/implementation-2026-10-10", { recursive: true });
+  await page.locator('iframe[title="游戏隔离预览"]').evaluate(element => element.scrollIntoView({ block: "center" }));
+  await page.screenshot({ path: "docs/implementation-2026-10-10/workspace-desktop.png", fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "手机预览", exact: true }).click();
+  await page.locator(".preview-frame-wrap").evaluate(async element => {
+    await Promise.all(element.getAnimations().map(animation => animation.finished));
+  });
+  const mobileButton = page.frameLocator('iframe[title="游戏隔离预览"]').getByRole("button", { name: "编辑后按钮", exact: true });
+  await mobileButton.waitFor();
+  await page.locator('iframe[title="游戏隔离预览"]').evaluate(element => element.scrollIntoView({ block: "center" }));
+  await mobileButton.click();
+  await page.frameLocator('iframe[title="游戏隔离预览"]').getByRole("button", { name: "已点击", exact: true }).waitFor({ timeout: 5000 });
+  await page.screenshot({ path: "docs/implementation-2026-10-10/workspace-mobile.png", fullPage: true });
+  assert.deepEqual(errors, [], "工作台不能出现未捕获错误");
+  console.log("Workspace browser smoke passed: editing/preview/ZIP/recovery/cancel/new-game/history/forged-message/mobile interaction.");
+} finally { await browser.close(); }

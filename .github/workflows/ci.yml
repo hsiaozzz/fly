@@ -1,0 +1,39 @@
+name: Verify ARCANE
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: disposable-ci-password
+          MYSQL_DATABASE: arcane_test
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pdisposable-ci-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm db:migrate
+        env:
+          DATABASE_URL: mysql://root:disposable-ci-password@127.0.0.1:3306/arcane_test
+      - run: pnpm test
+        env:
+          ARCANE_TEST_DATABASE_URL: mysql://root:disposable-ci-password@127.0.0.1:3306/arcane_test
+      - run: pnpm build
+      - run: pnpm exec playwright-core install --with-deps chromium
+      - run: node tools/ci-browser-path.mjs
+      - run: pnpm qa:smoke
+      - run: node tools/browser-smoke-suite.mjs

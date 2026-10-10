@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="zh" data-page-node-id="GAed2mPuNNJ93zFJkaK19L">
+<head data-page-node-id="GXubb09tmCtUNrwY6on50z">
+<meta charset="UTF-8" data-page-node-id="ODp3HHgcWG9oM6YVCBE2eG">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="z3RkTMj6iipbTXPQQcPhdB">
+<title>霓虹公路 · 伪3D赛车</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#05010f}
+  canvas{display:block;width:100vw;height:100vh}
+  #ui{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;font-family:system-ui,sans-serif}
+  .overlay{text-align:center;color:#e8f6ff;background:rgba(5,1,15,.72);border:1px solid #ff2d78;border-radius:14px;padding:28px 42px;box-shadow:0 0 42px #ff2d7844}
+  .overlay.hidden{display:none}
+  .overlay h1{margin:0 0 10px;font-size:30px;letter-spacing:6px;color:#2de2ff;text-shadow:0 0 18px #2de2ff88}
+  .overlay p{margin:6px 0;font-size:13px;color:#b9d7ec}
+  .overlay button{pointer-events:auto;margin-top:14px;border:1px solid #ff2d78;background:#ff2d7822;color:#ffd9ea;border-radius:9px;padding:10px 26px;font-size:15px;letter-spacing:3px;cursor:pointer}
+  .overlay button:hover{background:#ff2d7844}
+</style>
+</head>
+<body data-page-node-id="8sDqhL3lmWT3zNiJdHLkvB">
+<canvas id="game" data-page-node-id="4Ndm3VILvFOEqFltc7Ql69"></canvas>
+<div id="ui" data-page-node-id="dNsEMcBUxtYrEREzh0UOp0">
+  <div id="menu" class="overlay" data-page-node-id="DwGGiEfupoDeSCCgRQlhz0">
+    <h1 data-page-node-id="bnlW0eitczGyhBMML8NmOH">霓虹公路</h1>
+    <p data-page-node-id="fD1uarkWQBzwGpxjEeHk4a">← → 或 A / D 转向 · 手机按住拖动</p>
+    <p data-page-node-id="GCTlYZFnQTjgKQFnX4lv9M">躲开车流，越快越险，分越高</p>
+    <button id="btn-start" data-page-node-id="8ForNFxYe6Q9vB18rKzwW7">开始 · START</button>
+  </div>
+  <div id="over" class="overlay hidden" data-page-node-id="XYW0i5Cr2HfuD2j3OFICcC">
+    <h1 data-page-node-id="HqHeKlqTB6WaysJFDhcIoe">撞车了</h1>
+    <p id="final" data-page-node-id="9h0TzxNdWdeptjBUkEF8XZ">本局得分 0</p>
+    <button id="btn-retry" data-page-node-id="Sh4K7J4vVVpQFHv8NF6GVr">再来一局</button>
+  </div>
+</div>
+<script>
+"use strict";
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let W = window.innerWidth, H = window.innerHeight;
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+window.addEventListener("resize", resize);
+resize();
+
+// ---------- 伪 3D 世界参数 ----------
+const SEG_LEN = 220;
+const ROAD_W = 2100;
+const CAM_H = 1150;
+const CAM_DEPTH = 1 / Math.tan((72 / 2) * Math.PI / 180);
+const DRAW_DIST = 95;
+const LANES = 3;
+
+let segments = [];
+let trackLength = 0;
+
+function lastY() { return segments.length ? segments[segments.length - 1].p2.world.y : 0; }
+function addSegment(curve, y) {
+  const n = segments.length;
+  segments.push({
+    index: n,
+    p1: { world: { y: lastY(), z: n * SEG_LEN }, camera: { x: 0, y: 0, z: 0 }, screen: { x: 0, y: 0, w: 0, scale: 0 } },
+    p2: { world: { y: y, z: (n + 1) * SEG_LEN }, camera: { x: 0, y: 0, z: 0 }, screen: { x: 0, y: 0, w: 0, scale: 0 } },
+    curve: curve, clip: 0
+  });
+}
+function easeIn(a, b, t) { return a + (b - a) * Math.pow(t, 2); }
+function easeInOut(a, b, t) { return a + (b - a) * (-Math.cos(t * Math.PI) / 2 + 0.5); }
+function addRoad(enter, hold, leave, curve, hill) {
+  const startY = lastY(), endY = startY + hill, total = enter + hold + leave;
+  for (let i = 0; i < enter; i++) addSegment(easeIn(0, curve, i / enter), easeInOut(startY, endY, i / total));
+  for (let i = 0; i < hold; i++) addSegment(curve, easeInOut(startY, endY, (enter + i) / total));
+  for (let i = 0; i < leave; i++) addSegment(easeInOut(curve, 0, i / leave), easeInOut(startY, endY, (enter + hold + i) / total));
+}
+function buildTrack() {
+  segments = [];
+  addRoad(40, 60, 40, 0, 0);
+  addRoad(30, 60, 30, 3, 500);
+  addRoad(30, 50, 30, -4, -300);
+  addRoad(25, 40, 25, 0, 1600);
+  addRoad(30, 70, 30, 5, -600);
+  addRoad(25, 45, 25, -5, 0);
+  addRoad(30, 50, 30, 2, 900);
+  addRoad(20, 40, 20, -3, -400);
+  trackLength = segments.length * SEG_LEN;
+}
+
+// ---------- 车流 ----------
+const MAX_SPEED = SEG_LEN * 62;
+const cars = [];
+function resetCars() {
+  cars.length = 0;
+  const hues = [330, 190, 45, 275, 150];
+  for (let i = 0; i < 16; i++) {
+    cars.push({
+      z: (i + 1) * (trackLength / 18) + Math.random() * 900,
+      offset: (Math.random() * 1.5 - 0.75),
+      speed: MAX_SPEED * (0.42 + Math.random() * 0.3),
+      hue: hues[i % hues.length]
+    });
+  }
+}
+
+// ---------- 游戏状态 ----------
+let state = "menu";
+let position = 0, speed = 0, playerX = 0;
+let score = 0, best = 0, elapsed = 0, shakeT = 0;
+const keys = { left: false, right: false };
+let dragX = null;
+
+function startGame() {
+  state = "play";
+  position = 0; speed = MAX_SPEED * 0.35; playerX = 0;
+  score = 0; elapsed = 0; shakeT = 0;
+  resetCars();
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("over").classList.add("hidden");
+  initAudio();
+}
+function crash() {
+  state = "over"; shakeT = 0.5;
+  best = Math.max(best, score);
+  document.getElementById("final").textContent = "本局得分 " + Math.floor(score) + " · 历史最佳 " + Math.floor(best);
+  document.getElementById("over").classList.remove("hidden");
+  crashSound();
+}
+document.getElementById("btn-start").addEventListener("click", startGame);
+document.getElementById("btn-retry").addEventListener("click", startGame);
+canvas.addEventListener("pointerdown", function (e) {
+  dragX = e.clientX;
+  if (state === "menu") startGame();
+});
+canvas.addEventListener("pointermove", function (e) {
+  if (dragX !== null && state === "play") {
+    playerX += (e.clientX - dragX) / W * 3.2;
+    dragX = e.clientX;
+  }
+});
+window.addEventListener("pointerup", function () { dragX = null; });
+window.addEventListener("keydown", function (e) {
+  if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = true;
+  if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = true;
+  if (e.code === "Space" && state !== "play") startGame();
+});
+window.addEventListener("keyup", function (e) {
+  if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = false;
+  if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = false;
+});
+
+// ---------- 更新 ----------
+function findSegment(z) { return segments[Math.floor(z / SEG_LEN) % segments.length]; }
+function update(dt) {
+  elapsed += dt;
+  if (state === "play") {
+    speed = Math.min(MAX_SPEED, speed + MAX_SPEED * 0.14 * dt);
+    score += speed / MAX_SPEED * 42 * dt;
+    const steer = 1.9 * dt * (speed / MAX_SPEED);
+    if (keys.left) playerX -= steer;
+    if (keys.right) playerX += steer;
+    playerX -= dt * 2.1 * (speed / MAX_SPEED) * findSegment(position + CAM_H).curve * 0.05;
+    playerX = Math.max(-1.6, Math.min(1.6, playerX));
+  } else {
+    speed = MAX_SPEED * 0.5; // 菜单/结算画面自动驾驶巡航
+  }
+  position = (position + speed * dt) % trackLength;
+  if (shakeT > 0) shakeT -= dt;
+
+  for (const car of cars) {
+    car.z = (car.z + car.speed * dt) % trackLength;
+    if (state !== "play") continue;
+    const gap = (car.z - position + trackLength) % trackLength;
+    if (gap < SEG_LEN * 1.4 || gap > trackLength - SEG_LEN * 0.4) {
+      if (Math.abs(car.offset - playerX) < 0.30 && speed > car.speed) { crash(); }
+    }
+    // 超车计分：车从面前变到身后
+    if (gap > trackLength - SEG_LEN && speed > car.speed) score += 50;
+  }
+}
+
+// ---------- 渲染 ----------
+function project(p, camX, camY, camZ) {
+  // Road segments have no world.x of their own: the camera's lateral offset
+  // (playerX minus the accumulated curve) IS the horizontal displacement.
+  p.camera.x = -camX;
+  p.camera.y = p.world.y - camY;
+  p.camera.z = p.world.z - camZ;
+  p.screen.scale = CAM_DEPTH / p.camera.z;
+  p.screen.x = Math.round(W / 2 + p.screen.scale * p.camera.x * W / 2);
+  p.screen.y = Math.round(H / 2 - p.screen.scale * p.camera.y * H / 2);
+  p.screen.w = Math.round(p.screen.scale * ROAD_W * W / 2);
+}
+function polygon(x1, y1, x2, y2, x3, y3, x4, y4, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x4, y4);
+  ctx.closePath(); ctx.fill();
+}
+
+let stars = [];
+function makeStars() {
+  stars = [];
+  for (let i = 0; i < 90; i++) stars.push({ x: Math.random(), y: Math.random() * 0.5, r: Math.random() * 1.4 + 0.4, tw: Math.random() * 6 });
+}
+makeStars();
+
+function drawSky(t, horizonShift) {
+  const sky = ctx.createLinearGradient(0, 0, 0, H * 0.62);
+  sky.addColorStop(0, "#120428");
+  sky.addColorStop(0.6, "#3b0f5e");
+  sky.addColorStop(1, "#7a1e5c");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H * 0.62 + 2);
+  for (const s of stars) {
+    ctx.globalAlpha = 0.35 + 0.5 * Math.abs(Math.sin(t * 1.4 + s.tw));
+    ctx.fillStyle = "#cfe8ff";
+    ctx.beginPath();
+    ctx.arc(((s.x * W - horizonShift * 0.15) % W + W) % W, s.y * H, s.r, 0, 7);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const sunY = H * 0.42, sunR = Math.min(W, H) * 0.14;
+  const sun = ctx.createLinearGradient(0, sunY - sunR, 0, sunY + sunR);
+  sun.addColorStop(0, "#ffd23e");
+  sun.addColorStop(1, "#ff2d78");
+  ctx.fillStyle = sun;
+  ctx.beginPath();
+  ctx.arc(W / 2 - horizonShift * 0.3, sunY, sunR, 0, 7);
+  ctx.fill();
+  ctx.fillStyle = "#120428";
+  for (let i = 0; i < 5; i++) {
+    ctx.fillRect(W / 2 - sunR - horizonShift * 0.3, sunY - sunR * 0.15 + i * sunR * 0.22, sunR * 2, sunR * 0.09);
+  }
+  // 远山两层视差
+  ctx.fillStyle = "#1d0b3e";
+  mountainLayer(sunY + sunR * 0.4, 90, horizonShift * 0.5, 0.013);
+  ctx.fillStyle = "#0e0526";
+  mountainLayer(sunY + sunR * 0.8, 60, horizonShift * 0.8, 0.021);
+}
+function mountainLayer(baseY, amp, shift, freq) {
+  ctx.beginPath();
+  ctx.moveTo(0, baseY);
+  for (let x = 0; x <= W; x += 24) {
+    const y = baseY - amp * (0.55 + 0.45 * Math.sin((x + shift) * freq) * Math.cos((x + shift) * freq * 0.37));
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(W, H); ctx.lineTo(0, H);
+  ctx.closePath(); ctx.fill();
+}
+function drawCarSprite(x, y, w, hue, isPlayer) {
+  const h = w * 0.58;
+  ctx.save();
+  // 地面阴影
+  ctx.globalAlpha = 0.4;
+  ctx.fillStyle = "#000000";
+  ctx.beginPath();
+  ctx.ellipse(x, y + h * 0.05, w * 0.6, h * 0.15, 0, 0, 7);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  // 车身：下宽上窄的梯形，带纵向明暗渐变
+  const body = ctx.createLinearGradient(x, y - h, x, y);
+  body.addColorStop(0, "hsl(" + hue + ", 92%, 70%)");
+  body.addColorStop(0.55, "hsl(" + hue + ", 88%, 52%)");
+  body.addColorStop(1, "hsl(" + hue + ", 85%, 34%)");
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.moveTo(x - w * 0.56, y);
+  ctx.lineTo(x - w * 0.42, y - h * 0.5);
+  ctx.lineTo(x + w * 0.42, y - h * 0.5);
+  ctx.lineTo(x + w * 0.56, y);
+  ctx.closePath();
+  ctx.fill();
+  // 尾翼
+  ctx.fillStyle = "hsl(" + hue + ", 80%, 26%)";
+  ctx.fillRect(x - w * 0.52, y - h * 0.62, w * 1.04, h * 0.14);
+  // 座舱 + 高光
+  ctx.fillStyle = "#0b1026";
+  ctx.beginPath();
+  ctx.moveTo(x - w * 0.3, y - h * 0.5);
+  ctx.lineTo(x - w * 0.19, y - h * 0.86);
+  ctx.lineTo(x + w * 0.19, y - h * 0.86);
+  ctx.lineTo(x + w * 0.3, y - h * 0.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "rgba(220,245,255,.55)";
+  ctx.lineWidth = Math.max(1, w * 0.02);
+  ctx.beginPath();
+  ctx.moveTo(x - w * 0.24, y - h * 0.54);
+  ctx.lineTo(x - w * 0.15, y - h * 0.8);
+  ctx.stroke();
+  // 轮胎
+  ctx.fillStyle = "#05060f";
+  ctx.fillRect(x - w * 0.58, y - h * 0.2, w * 0.13, h * 0.22);
+  ctx.fillRect(x + w * 0.45, y - h * 0.2, w * 0.13, h * 0.22);
+  // 尾灯
+  ctx.fillStyle = isPlayer ? "#ff5470" : "#ffe9a8";
+  ctx.fillRect(x - w * 0.46, y - h * 0.32, w * 0.22, h * 0.12);
+  ctx.fillRect(x + w * 0.24, y - h * 0.32, w * 0.22, h * 0.12);
+  // 玩家车排气焰
+  if (isPlayer) {
+    const flame = 0.5 + Math.random() * 0.5;
+    ctx.globalAlpha = 0.65 * flame;
+    ctx.fillStyle = "#ff2d78";
+    ctx.fillRect(x - w * 0.42, y, w * 0.13, h * 0.4 * flame);
+    ctx.fillRect(x + w * 0.29, y, w * 0.13, h * 0.4 * flame);
+    ctx.fillStyle = "#ffd23e";
+    ctx.fillRect(x - w * 0.38, y, w * 0.05, h * 0.24 * flame);
+    ctx.fillRect(x + w * 0.33, y, w * 0.05, h * 0.24 * flame);
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+}
+
+function render(t) {
+  const base = findSegment(position);
+  const basePercent = (position % SEG_LEN) / SEG_LEN;
+  const playerSeg = findSegment(position + CAM_H);
+  const playerPercent = ((position + CAM_H) % SEG_LEN) / SEG_LEN;
+  const camY = CAM_H + playerSeg.p1.world.y + (playerSeg.p2.world.y - playerSeg.p1.world.y) * playerPercent;
+  let maxY = H, x = 0, dx = -(base.curve * basePercent);
+  const horizonShift = (playerSeg.curve || 0) * 30 + playerX * 60;
+
+  ctx.save();
+  if (shakeT > 0) ctx.translate((Math.random() - 0.5) * 14 * shakeT * 2, (Math.random() - 0.5) * 14 * shakeT * 2);
+  drawSky(t, horizonShift);
+  ctx.fillStyle = "#0a0618";
+  ctx.fillRect(0, H * 0.62, W, H * 0.38);
+
+  const visibleCars = [];
+  for (let n = 0; n < DRAW_DIST; n++) {
+    const seg = segments[(base.index + n) % segments.length];
+    seg.clip = maxY;
+    const looped = base.index + n >= segments.length;
+    project(seg.p1, playerX * ROAD_W - x, camY, position - (looped ? trackLength : 0));
+    project(seg.p2, playerX * ROAD_W - x - dx, camY, position - (looped ? trackLength : 0));
+    x += dx; dx += seg.curve;
+    if (seg.p1.camera.z <= CAM_DEPTH || seg.p2.screen.y >= seg.p1.screen.y || seg.p2.screen.y >= maxY) continue;
+
+    const p1 = seg.p1.screen, p2 = seg.p2.screen;
+    const alt = Math.floor(seg.index / 4) % 2;
+    const fog = Math.min(1, Math.max(0, 1 - n / DRAW_DIST));
+    const grass = alt ? "#0d0722" : "#0a0618";
+    const road = alt ? "#241543" : "#1d1038";
+    const rumble = alt ? "#ff2d78" : "#2de2ff";
+    ctx.globalAlpha = 0.35 + 0.65 * fog;
+    polygon(0, p1.y, W, p1.y, W, p2.y, 0, p2.y, grass);
+    polygon(p1.x - p1.w * 1.14, p1.y, p1.x + p1.w * 1.14, p1.y, p2.x + p2.w * 1.14, p2.y, p2.x - p2.w * 1.14, p2.y, rumble);
+    polygon(p1.x - p1.w, p1.y, p1.x + p1.w, p1.y, p2.x + p2.w, p2.y, p2.x - p2.w, p2.y, road);
+    if (alt) {
+      const laneW1 = p1.w * 2 / LANES, laneW2 = p2.w * 2 / LANES;
+      for (let lane = 1; lane < LANES; lane++) {
+        const lx1 = p1.x - p1.w + laneW1 * lane, lx2 = p2.x - p2.w + laneW2 * lane;
+        polygon(lx1 - p1.w * 0.015, p1.y, lx1 + p1.w * 0.015, p1.y, lx2 + p2.w * 0.015, p2.y, lx2 - p2.w * 0.015, p2.y, "#cfd8ff");
+      }
+    }
+    // 路边霓虹灯柱：近大远小，透视节奏感全靠它
+    if (seg.index % 8 === 0 && p1.w > 3) {
+      const poleH = p1.w * 0.55, poleW = Math.max(1, p1.w * 0.03);
+      ctx.globalAlpha = 0.35 + 0.65 * fog;
+      ctx.fillStyle = "#13204a";
+      ctx.fillRect(p1.x - p1.w * 1.3 - poleW / 2, p1.y - poleH, poleW, poleH);
+      ctx.fillRect(p1.x + p1.w * 1.3 - poleW / 2, p1.y - poleH, poleW, poleH);
+      ctx.fillStyle = alt ? "#ffd23e" : "#2de2ff";
+      ctx.fillRect(p1.x - p1.w * 1.3 - poleW, p1.y - poleH - poleW * 2.2, poleW * 2, poleW * 2.2);
+      ctx.fillRect(p1.x + p1.w * 1.3 - poleW, p1.y - poleH - poleW * 2.2, poleW * 2, poleW * 2.2);
+      ctx.globalAlpha = 1;
+    }
+    ctx.globalAlpha = 1;
+    maxY = p2.y;
+    for (const car of cars) {
+      const carSeg = findSegment(car.z);
+      if (carSeg.index === seg.index) visibleCars.push({ car, seg, fog });
+    }
+  }
+
+  visibleCars.sort((a, b) => b.seg.p1.screen.scale - a.seg.p1.screen.scale);
+  for (const item of visibleCars) {
+    const s = item.seg.p1.screen;
+    const carX = s.x + s.scale * item.car.offset * ROAD_W * W / 2;
+    const carW = s.w * 0.32;
+    if (carW < 2 || s.y < s.w * 0.001) continue;
+    ctx.globalAlpha = 0.3 + 0.7 * item.fog;
+    drawCarSprite(carX, s.y, carW, item.car.hue, false);
+    ctx.globalAlpha = 1;
+  }
+
+  // 玩家车（固定屏幕底部，随转向轻微倾斜）
+  const pw = Math.min(W, H) * 0.16;
+  const py = H - pw * 0.42 - 18;
+  const tilt = (keys.left ? -1 : 0) + (keys.right ? 1 : 0) || 0;
+  ctx.save();
+  ctx.translate(W / 2, py);
+  ctx.rotate(tilt * 0.045);
+  ctx.translate(-W / 2, -py);
+  drawCarSprite(W / 2 + playerX * W * 0.02, py, pw, 190, true);
+  ctx.restore();
+
+  // 高速时屏幕边缘速度线
+  const sr = speed / MAX_SPEED;
+  if (sr > 0.72) {
+    ctx.strokeStyle = "rgba(160,220,255," + ((sr - 0.72) * 1.1).toFixed(3) + ")";
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 8; i++) {
+      const ang = (i / 8) * Math.PI * 2 + t * 3;
+      const r1 = Math.min(W, H) * 0.55, r2 = r1 + 60 + Math.random() * 70;
+      const cx = W / 2, cy = H * 0.42;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(ang) * r1, cy + Math.sin(ang) * r1 * 0.7);
+      ctx.lineTo(cx + Math.cos(ang) * r2, cy + Math.sin(ang) * r2 * 0.7);
+      ctx.stroke();
+    }
+  }
+
+  // HUD
+  ctx.fillStyle = "rgba(6,2,20,.55)";
+  ctx.fillRect(14, 14, 208, 74);
+  ctx.strokeStyle = "#2de2ff88";
+  ctx.strokeRect(14, 14, 208, 74);
+  ctx.fillStyle = "#2de2ff";
+  ctx.font = "bold 22px system-ui";
+  ctx.fillText("SCORE " + Math.floor(score), 28, 44);
+  ctx.fillStyle = "#ffd9ea";
+  ctx.font = "15px system-ui";
+  ctx.fillText("SPEED " + Math.round(speed / MAX_SPEED * 320) + " km/h", 28, 72);
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#ff2d78";
+  ctx.fillText("BEST " + Math.floor(best), W - 24, 44);
+  ctx.textAlign = "left";
+  ctx.restore();
+}
+
+// ---------- 音频：程序化合成波（零音频文件） ----------
+let audio = null;
+function initAudio() {
+  if (audio) { audio.ac.resume().catch(function () {}); return; }
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ac = new AC();
+    const master = ac.createGain();
+    master.gain.value = 0.55;
+    master.connect(ac.destination);
+    // 引擎：锯齿波 + 低通，音高随车速
+    const eng = ac.createOscillator();
+    eng.type = "sawtooth";
+    eng.frequency.value = 55;
+    const engFilter = ac.createBiquadFilter();
+    engFilter.type = "lowpass";
+    engFilter.frequency.value = 420;
+    const engGain = ac.createGain();
+    engGain.gain.value = 0;
+    eng.connect(engFilter);
+    engFilter.connect(engGain);
+    engGain.connect(master);
+    eng.start();
+    audio = { ac, master, eng, engGain, nextStep: 0, step: 0 };
+  } catch (e) { audio = null; }
+}
+const BASS_LINE = [0, 0, 7, 0, 5, 5, 3, 7];
+const ARP_LINE = [12, 16, 19, 24, 19, 16, 15, 10];
+function synthNote(semi, when, dur, type, base, vol) {
+  const o = audio.ac.createOscillator();
+  o.type = type;
+  o.frequency.value = base * Math.pow(2, semi / 12);
+  const g = audio.ac.createGain();
+  g.gain.setValueAtTime(vol, when);
+  g.gain.exponentialRampToValueAtTime(0.001, when + dur);
+  o.connect(g);
+  g.connect(audio.master);
+  o.start(when);
+  o.stop(when + dur + 0.03);
+}
+function synthNoise(when, dur, vol, high) {
+  const len = Math.max(1, Math.floor(audio.ac.sampleRate * dur));
+  const buf = audio.ac.createBuffer(1, len, audio.ac.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const src = audio.ac.createBufferSource();
+  src.buffer = buf;
+  const filter = audio.ac.createBiquadFilter();
+  filter.type = high ? "highpass" : "lowpass";
+  filter.frequency.value = high ? 6000 : 900;
+  const g = audio.ac.createGain();
+  g.gain.value = vol;
+  src.connect(filter);
+  filter.connect(g);
+  g.connect(audio.master);
+  src.start(when);
+}
+function musicStep() {
+  if (!audio || audio.ac.state !== "running") return;
+  const now = audio.ac.currentTime;
+  if (audio.nextStep < now - 0.3) audio.nextStep = now; // 掉队后重新对齐
+  const stepDur = 0.165;
+  while (audio.nextStep < now + 0.2) {
+    const s = audio.step % 8;
+    synthNote(BASS_LINE[s], audio.nextStep, stepDur * 0.9, "square", 55, 0.10);
+    synthNote(ARP_LINE[s], audio.nextStep, stepDur * 0.5, "sawtooth", 110, 0.035);
+    if (s % 2 === 1) synthNoise(audio.nextStep, 0.04, 0.05, true);
+    audio.step++;
+    audio.nextStep += stepDur;
+  }
+  // 引擎音高跟随车速
+  const sr = speed / MAX_SPEED;
+  audio.eng.frequency.value = 48 + sr * 150;
+  audio.engGain.gain.value = state === "play" ? 0.045 + sr * 0.05 : 0.018;
+}
+function crashSound() {
+  if (!audio || audio.ac.state !== "running") return;
+  const now = audio.ac.currentTime;
+  synthNoise(now, 0.6, 0.5, false);
+  synthNoise(now, 0.25, 0.3, true);
+  const boom = audio.ac.createOscillator();
+  boom.type = "sine";
+  boom.frequency.setValueAtTime(120, now);
+  boom.frequency.exponentialRampToValueAtTime(30, now + 0.5);
+  const g = audio.ac.createGain();
+  g.gain.setValueAtTime(0.5, now);
+  g.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+  boom.connect(g);
+  g.connect(audio.master);
+  boom.start(now);
+  boom.stop(now + 0.6);
+}
+
+// ---------- 主循环 ----------
+let lastTime = 0;
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.05, (now - lastTime) / 1000 || 0.016);
+  lastTime = now;
+  update(dt);
+  render(now / 1000);
+  musicStep();
+}
+buildTrack();
+resetCars();
+requestAnimationFrame(loop);
+// 无人验证入口：?autostart 直接开局（headless 截图与自检用）
+if (location.search.indexOf("autostart") >= 0) startGame();
+</script>
+</body>
+</html>

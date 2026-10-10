@@ -1,0 +1,794 @@
+{
+  "schemaVersion": 1,
+  "purpose": "固定中文质量基准；需求检查不等同工程检查",
+  "cases": [
+    {
+      "id": "catch-apples",
+      "category": "接苹果",
+      "prompt": "用篮子接苹果，接到10个获胜，漏掉3个失败，方向键移动，支持重开。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "苹果出现",
+        "左右移动篮子",
+        "接住累计10个胜利",
+        "漏掉3个失败",
+        "重开重置"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "gomoku",
+      "category": "五子棋",
+      "prompt": "制作双人轮流落子的五子棋，五颗连线获胜，显示当前玩家，可以重开。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "轮流落子",
+        "同一格不能重复",
+        "横竖斜五子获胜",
+        "重开"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "memory",
+      "category": "翻牌",
+      "prompt": "做16张卡片的记忆配对游戏，配对成功保留，错误配对翻回，全部配对获胜。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "16张8对",
+        "错误翻回",
+        "正确保留",
+        "全部配对胜利"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "platform",
+      "category": "平台动作",
+      "prompt": "做三关横版跳跃游戏，方向键移动空格跳，踩敌人得分，碰敌人扣血，三条命。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "空格跳跃",
+        "踩敌人",
+        "碰撞扣命",
+        "三关可到达",
+        "重开重置"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "shooter",
+      "category": "射击",
+      "prompt": "制作太空射击，鼠标控制飞船，点击开火，三条命，击败10个敌人后打Boss。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "真实鼠标控制",
+        "开火击杀",
+        "三条命",
+        "10敌人Boss",
+        "Boss可击败"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "endless-runner",
+      "category": "无限跑酷",
+      "prompt": "做无限跑酷，跳跃躲避障碍、收集金币，速度逐渐增加，失败可以重开。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "无限规则",
+        "障碍碰撞",
+        "金币得分",
+        "速度渐增",
+        "重开"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "finite-runner",
+      "category": "有限关卡",
+      "prompt": "做终点在4800米的跑酷，终点可到达，抵达后胜利，重开清零距离。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "4800米终点",
+        "终点可到达",
+        "勝利",
+        "距离重置"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "maze",
+      "category": "迷宫",
+      "prompt": "制作10乘10迷宫，方向键移动，墙不能穿过，从左上到右下，保证可通关。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "10x10",
+        "墙体碰撞",
+        "路线存在",
+        "到达出口胜利"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "tower",
+      "category": "塔防",
+      "prompt": "做可放置三种防御塔的塔防，敌人沿路径移动，五波后获胜，基地10点生命。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "放塔花钱",
+        "路径移动",
+        "三种塔",
+        "5波胜利",
+        "基地10生命"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "snake",
+      "category": "贪吃蛇",
+      "prompt": "做贪吃蛇，方向键控制，吃食物变长，撞墙或撞自己失败，重开恢复长度。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "方向键",
+        "吃食物增长",
+        "墙/自己碰撞",
+        "重开"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "breakout",
+      "category": "打砖块",
+      "prompt": "制作打砖块，鼠标移动挡板，消灭全部砖块获胜，漏球三次失败。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "挡板跟随",
+        "砖块碰撞移除",
+        "全部砖块胜利",
+        "三次漏球失败"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "puzzle",
+      "category": "推箱子",
+      "prompt": "做一关推箱子，把3个箱子推到3个目标，不能推两个连续箱子，支持撤销。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "三个箱子和目标",
+        "墙/连续箱子限制",
+        "撤销",
+        "通关"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "match3",
+      "category": "三消",
+      "prompt": "制作8乘8三消，交换邻近水果，匹配3个消除，30步内达到1000分获胜。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "8x8",
+        "邻接交换",
+        "3个匹配",
+        "30步限制",
+        "1000分获胜"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "rhythm",
+      "category": "节奏",
+      "prompt": "做四轨节奏小游戏，用DFJK击打音符，显示准确度，漏掉10次结束。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "DFJK",
+        "音符时间窗口",
+        "准确度",
+        "10次漏击终态"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "fishing",
+      "category": "钓鱼",
+      "prompt": "做钓鱼游戏，点击抛竿，鱼咬钩时点击收竿，收集5种鱼入图鉴。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "抛竿",
+        "咬钩窗口",
+        "收竿",
+        "5种图鉴"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "farm",
+      "category": "经营",
+      "prompt": "制作三天种菜游戏，买种子、播种、浇水、第二天收获，显示钱与天数。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "买/种/浇/收循环",
+        "隔天收获",
+        "资源守恒",
+        "3天终态"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "journey",
+      "category": "旅行叙事",
+      "prompt": "做骑马旅行叙事游戏，村庄有委托，资源影响事件选择，完成环线出现结局。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "节点前進",
+        "委托执行",
+        "资源条件",
+        "环线结局"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "stealth",
+      "category": "潜行",
+      "prompt": "做躲避巡逻守卫的潜行游戏，被视野看到3秒失败，拿到钥匙后打开出口。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "巡逻/视野",
+        "持续3秒失败",
+        "钥匙前置",
+        "出口通关"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "racer",
+      "category": "赛车",
+      "prompt": "做俯视赛车，左右转向，碰障碍减速，跑完3圈获胜，显示圈数。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "左右转向",
+        "碰撞减速",
+        "3圈计数",
+        "获胜"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "tic-tac-toe",
+      "category": "井字棋",
+      "prompt": "做与简单AI对战的井字棋，三连获胜，满盘无三连平局，能选择先后手。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "AI轮次",
+        "三连",
+        "平局",
+        "先后手"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "mobile-jump",
+      "category": "手机触控",
+      "prompt": "制作手机竖屏跳跃，左侧触控移动，右侧跳跃按钮，按钮不可被遮挡。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "真实触摸",
+        "同时移动跳跃",
+        "390px适配",
+        "按钮可达"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "drag-sort",
+      "category": "拖动分类",
+      "prompt": "做水果拖动分类游戏，将苹果和香蕉放入正确篮子，正确10次获胜。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "拖动",
+        "对象种类",
+        "错篮无得分",
+        "10次胜利"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "physics",
+      "category": "物理弹球",
+      "prompt": "做重力弹球小游戏，点击弹射，小球撞墙反弹，进入目标区域获胜。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "重力",
+        "弹射",
+        "反弹",
+        "目标胜利"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "turn-rpg",
+      "category": "回合战斗",
+      "prompt": "制作回合制战斗，攻击、防御和治疗，治疗有3次限制，击败敌人获胜。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "回合交替",
+        "防御效果",
+        "3次治疗限制",
+        "胜负"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "multifile",
+      "category": "多文件",
+      "prompt": "制作点击收集星星游戏，将HTML、JS、CSS、配置JSON和SVG图片分开，离线可玩。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "独立文件",
+        "依赖全可达",
+        "JSON加载",
+        "SVG加载",
+        "预览导出一致"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "config",
+      "category": "安全调参",
+      "prompt": "制作接苹果游戏，把速度、角色颜色和音效开关放入独立可调配置，游戏读取配置。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "严格配置",
+        "速度影响游戏",
+        "颜色生效",
+        "开关生效"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "patch-color",
+      "category": "小改动回归",
+      "prompt": "先做接苹果10个胜利漏3个失败，再只把篮子变蓝。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "只改变颜色",
+        "数字保持",
+        "操作保持",
+        "胜负保持"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "patch-speed",
+      "category": "数值回归",
+      "prompt": "先做平台跳跃游戏，再把移动速度增加20%，保持关卡、重开和碰撞规则。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "速度增20%",
+        "关卡保留",
+        "碰撞保留",
+        "重开保留"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "event-only",
+      "category": "事件驱动",
+      "prompt": "制作没有持续动画的按钮反应测试，倒计时结束后点击记录反应时间。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "不强制动画循环",
+        "真实点击",
+        "反应计时",
+        "重开"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    },
+    {
+      "id": "restart",
+      "category": "生命周期",
+      "prompt": "制作3条命的射击，测试开始、暂停、恢复、死亡、通关和连续重开3次。",
+      "seeds": [
+        42,
+        43
+      ],
+      "viewports": [
+        {
+          "width": 960,
+          "height": 640
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "requiredAcceptance": [
+        "完整生命周期",
+        "暂停状态冻结",
+        "恢复",
+        "连续重开重置",
+        "监听器不叠加"
+      ],
+      "acceptanceMode": "manual-until-scenario-available"
+    }
+  ]
+}

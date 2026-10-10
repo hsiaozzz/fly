@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN" data-page-node-id="s8AJgTGMeh9WyM0F6tWObT">
+<head data-page-node-id="Q23JB0hHwoGIg063gtaWON">
+  <meta charset="UTF-8" data-page-node-id="cxYt7cOIagft1OOD6PttfL" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" data-page-node-id="bOHIgobkRHnMuExKDBAyi5" />
+  <title>戴夫潜水记 · Dave Clone</title>
+  <link rel="stylesheet" href="./style.css" data-page-node-id="ZxFXhkFntUxS8ABglAvGHM" />
+</head>
+<body data-page-node-id="iQy9UdXYw8zpCyn36Jz0Pa">
+  <div id="game" data-page-node-id="GlQm0EKfIx6RRjJooxosbv">
+    <canvas id="screen" data-page-node-id="SVLZKxnz3mbF1LqhN21xO9"></canvas>
+    <div id="ui" class="hidden" data-page-node-id="SM02W5XC4sMkQSCYXDF72A">
+      <div id="top-bar" data-page-node-id="lKRquMmsULDBLxFIXtCbTm">
+        <div class="stat oxygen-wrap" data-page-node-id="E1mUWrqB4ocEIwkQZnZMQI">
+          <span class="label" data-page-node-id="8sWUtOEC0F6T1QWpQGQiCD">氧气</span>
+          <div class="bar" data-page-node-id="38eqBeMuQLCS92h5VsXvtW"><div id="oxygen-fill" data-page-node-id="Ujk1HJghOnh6E8Q16CWw8T"></div></div>
+          <span id="oxygen-text" data-page-node-id="SgkBqVlg5qUcswLWuWzMMF">100%</span>
+        </div>
+        <div class="stat weight-wrap" data-page-node-id="74kTX7aDt3m1uh566BdINt">
+          <span class="label" data-page-node-id="oFP5NUIc64hqkPi1StfrZD">负重</span>
+          <div class="bar" data-page-node-id="qdPIy9OFLbTtdxFAl1Qxwv"><div id="weight-fill" data-page-node-id="jDuPddVVAOCdgMdc2D5JaF"></div></div>
+          <span id="weight-text" data-page-node-id="hH4CvEVMADQOsjusaXo1HI">0/10</span>
+        </div>
+        <div class="stat gold-wrap" data-page-node-id="4xVZApoTOKg5YGi0dtango">
+          <span class="label" data-page-node-id="3s53aFNgUXspZRzRr44Vxj">金币</span>
+          <span id="gold-text" data-page-node-id="0QhCucPf6n3jh0ISrGt5mF">0</span>
+        </div>
+        <div class="stat depth-wrap" data-page-node-id="HCRg3Gm6R2CteCavktueO7">
+          <span class="label" data-page-node-id="PyF3xqqDIdZEvkQdPNeFnV">深度</span>
+          <span id="depth-text" data-page-node-id="gVHh1Ls3IE1GuZb02H0q7d">0m</span>
+        </div>
+      </div>
+      <div id="crosshair" data-page-node-id="BEfYwcjGpLn4Ndrh1KKXDz"></div>
+      <div id="message" data-page-node-id="BpDLz7oTKaDV9TkxekkNsh"></div>
+      <div id="shop-panel" class="panel hidden" data-page-node-id="I1KnEPD3gReymFYnmwu5sO">
+        <h2 data-page-node-id="A1RI4yHUGuDYQL3twRFpnw">夜晚寿司店</h2>
+        <p id="shop-summary" data-page-node-id="ldiPuDD5oW8S5WgU0MKFcU">今日收获：</p>
+        <div id="menu-list" data-page-node-id="BX5sFHQ1zTOf5mp896rkQj"></div>
+        <button id="open-shop-btn" class="btn primary" data-page-node-id="aXirUkSzHwHaYu5wFiLTTG">开店营业</button>
+        <button id="upgrade-btn" class="btn" data-page-node-id="zrUXS1hWPvP5kyynzwj6JQ">升级装备</button>
+        <button id="sleep-btn" class="btn" data-page-node-id="K5KDEE4JaXEDwhPHSAPVfC">睡觉进入下一天</button>
+      </div>
+      <div id="restaurant-panel" class="panel hidden" data-page-node-id="PlsAXP9aHBNWTUhd4J178v">
+        <h2 data-page-node-id="ZX6Hus9XPKXCbIIA59AeSB">寿司店营业中</h2>
+        <div id="dining-area" data-page-node-id="2lbEUlLjxR8i2LSKkEBVpC"></div>
+        <div id="kitchen-hand" data-page-node-id="ZlcZtxNWvGoNObYr5o4BHG"></div>
+        <div id="restaurant-summary" data-page-node-id="fckrySL9IiPAyR7yJTCpHw"></div>
+      </div>
+      <div id="upgrades" class="panel hidden" data-page-node-id="HiB2L78QtYFgd1bw4hdFBd">
+        <h2 data-page-node-id="cpwIMnwww74fv3HPyIbdYq">装备升级</h2>
+        <div class="upgrade-list" data-page-node-id="P8XFhpZmxgbQnZISvpLufi">
+          <div class="upgrade-card" data-type="tank" data-page-node-id="ca9nmYrI1NFSxyIK62Ljed">
+            <b data-page-node-id="sGYKZIgtTk0O4WLZktOltM">大号氧气瓶</b><small data-page-node-id="G4EiTuLjTWWLk1AnNISGbs">氧气 +20%</small><span class="price" data-page-node-id="ELLiZbgF8QzLAkwqnyOtkl">100 G</span>
+            <button class="btn small" data-page-node-id="dz4JIdKrLzYTMrG0PLecov">购买</button>
+          </div>
+          <div class="upgrade-card" data-type="suit" data-page-node-id="HqHJHqfivpafHpThRxI6NY">
+            <b data-page-node-id="byMrWuEm5wWO8Uw9bWmcLI">潜水服</b><small data-page-node-id="EgCWrBDmY8wporUIEKfQQG">游动速度 +10%</small><span class="price" data-page-node-id="fsHlosQJruw4Xwg3THBsj7">150 G</span>
+            <button class="btn small" data-page-node-id="XoGNqNBJ9UDl178v0hitDW">购买</button>
+          </div>
+          <div class="upgrade-card" data-type="net" data-page-node-id="6tumgT1Exhwx7smGzXc2zy">
+            <b data-page-node-id="3Zw6a5QLhWpZA7vN5AbrR9">捕网</b><small data-page-node-id="m1VJ8DxR5D7ApHw2nbyjiB">捕获范围 +25%</small><span class="price" data-page-node-id="boeJQMxzTxHv2zjMOVjeen">200 G</span>
+            <button class="btn small" data-page-node-id="vri5jD1aaRDT1B6RGI5KlB">购买</button>
+          </div>
+          <div class="upgrade-card" data-type="weight" data-page-node-id="FLwDeNkE3PhQGYFXEpQlKY">
+            <b data-page-node-id="bGBpjFsHpbzcL3qcNQi4kq">加固腰带</b><small data-page-node-id="EBIByk4B7gHAkv2jpbATQF">负重 +3</small><span class="price" data-page-node-id="KWXn8GHJAd5KQTyy7PQZKA">250 G</span>
+            <button class="btn small" data-page-node-id="OXesp00xPia57IuEwOhEMW">购买</button>
+          </div>
+        </div>
+        <button id="close-upgrades" class="btn" data-page-node-id="DOnMBqHcjOsnacxIdfqHgQ">返回</button>
+      </div>
+      <div id="start-screen" class="panel" style="pointer-events:auto;" data-page-node-id="2o2GpnLQI546AWYfpBLYER">
+        <h1 data-page-node-id="xmHaRsrEyTmwN0x0yFy6lU">戴夫潜水记</h1>
+        <p data-page-node-id="v3xKPp4dapLQmMu05elVPf">白天潜入蓝洞捕鱼，夜晚经营寿司店赚钱升级。</p>
+        <p class="controls" data-page-node-id="QFjL5gTURrROisZcXlydnf">WASD / 方向键移动 · 鼠标瞄准 · 左键发射鱼叉 · 靠近鱼自动拾取 · 浮出水面换气</p>
+        <button id="start-btn" class="btn primary" data-page-node-id="t2vQdBiD1iCDJ7HeEUNLf4">开始潜水</button>
+      </div>
+      <div id="day-summary" class="panel hidden" data-page-node-id="ubBXFtHA2eZNfjTTtkcu0c">
+        <h2 id="summary-title" data-page-node-id="ck7K2PirkF4n8GDzeQGWXc">第 1 天结束</h2>
+        <p id="summary-body" data-page-node-id="ey0JWEeZA2Fsn3kfZkDXfE"></p>
+        <button id="next-day-btn" class="btn primary" data-page-node-id="SS15DBRVMQo94mBTTZ307t">进入夜晚 / 下一天</button>
+      </div>
+    </div>
+  </div>
+  <script src="./game.js"></script>
+</body>
+</html>

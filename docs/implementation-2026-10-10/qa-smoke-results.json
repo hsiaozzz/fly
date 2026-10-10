@@ -1,0 +1,1737 @@
+{
+  "status": "passed",
+  "testedAt": "2026-10-10T04:05:13.118617+00:00",
+  "mode": "compiled worker with production-only dependencies + actual headless Edge",
+  "scope": "QA framework regression fixtures; not a benchmark of model-generated game quality",
+  "caseCount": 16,
+  "browserCaseCount": 15,
+  "inputGroups": 60,
+  "viewports": [
+    {
+      "width": 960,
+      "height": 640
+    },
+    {
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "seeds": [
+    42,
+    43
+  ],
+  "workerSha256": "bbb37b8a42bb33ac6b84b9556cca099207fb3109e1f45cf11ab4736b924e5ff4",
+  "testSha256": "13ec1184ee45964d3aadeac77c0508338c2ca91b79cc81de9002776c3e1df293",
+  "cases": [
+    {
+      "test": "多文件 + 模块 + CSS + SVG + JSON + 真实输入",
+      "expected": "passed",
+      "actual": "passed",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "960px / seed 42：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "960px / seed 43：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "390px / seed 42：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "390px / seed 43：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5667
+    },
+    {
+      "test": "自动动画不冒充输入响应",
+      "expected": "unverified",
+      "actual": "unverified",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 6976
+    },
+    {
+      "test": "静态按钮的原生焦点不冒充游戏逻辑",
+      "expected": "unverified",
+      "actual": "unverified",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5345
+    },
+    {
+      "test": "语法错误阻断",
+      "expected": "failed",
+      "actual": "failed",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "fail",
+          "detail": "index.html JavaScript 语法错误：Unexpected token (1:8)"
+        }
+      ],
+      "durationMs": 1
+    },
+    {
+      "test": "启动异常捕获",
+      "expected": "failed",
+      "actual": "failed",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "fail",
+          "detail": "deliberate smoke failure\ndeliberate smoke failure\ndeliberate smoke failure\ndeliberate smoke failure\ndeliberate smoke failure\ndeliberate smoke failure\ndeliberate smoke failure\ndeliberate smoke failure"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5466
+    },
+    {
+      "test": "隐藏和裁切canvas不冒充可见界面或输入证据",
+      "expected": "failed",
+      "actual": "failed",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "fail",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "fail",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "fail",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "fail",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5235
+    },
+    {
+      "test": "隐藏DOM的data/class/style变更不冒充输入响应",
+      "expected": "unverified",
+      "actual": "unverified",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5650
+    },
+    {
+      "test": "可见DOM的未绘制data/class/custom-property变更不冒充响应",
+      "expected": "unverified",
+      "actual": "unverified",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5250
+    },
+    {
+      "test": "全遮挡元素变化不能通过（遮挡层pointer-events:auto）",
+      "expected": "unverified",
+      "actual": "unverified",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5298
+    },
+    {
+      "test": "全遮挡元素变化不能通过（遮挡层pointer-events:none）",
+      "expected": "unverified",
+      "actual": "unverified",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5421
+    },
+    {
+      "test": "透明文本与不透明度0开始按钮不能冒充界面或响应",
+      "expected": "failed",
+      "actual": "failed",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "fail",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "fail",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "fail",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "fail",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5326
+    },
+    {
+      "test": "DOM棋盘的实际文字及背景反馈可通过",
+      "expected": "passed",
+      "actual": "passed",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "960px / seed 42：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "960px / seed 43：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "390px / seed 42：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "390px / seed 43：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5379
+    },
+    {
+      "test": "CSS精灵的可见位置移动可通过",
+      "expected": "passed",
+      "actual": "passed",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "960px / seed 42：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "960px / seed 43：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "390px / seed 42：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "390px / seed 43：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5305
+    },
+    {
+      "test": "同暂停时钟下自动动画和真实canvas输入共存可通过",
+      "expected": "passed",
+      "actual": "passed",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "960px / seed 42：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "960px / seed 43：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "390px / seed 42：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "390px / seed 43：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 7109
+    },
+    {
+      "test": "原生长页滚动不冒充游戏输入逻辑",
+      "expected": "unverified",
+      "actual": "unverified",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 42：检测到页面滚动，无法排除浏览器默认输入行为，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "960px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 42：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "unverified",
+          "detail": "390px / seed 43：未观察到输入造成可见画面变化，需提供针对该玩法的操作测试。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 5680
+    },
+    {
+      "test": "ArcaneRuntime连续左右移动与blur暂停的真实canvas可通过",
+      "expected": "passed",
+      "actual": "passed",
+      "checks": [
+        {
+          "id": "bundle",
+          "label": "离线构建与语法",
+          "scope": "build",
+          "status": "pass",
+          "detail": "入口及本地依赖已解析，JavaScript 语法通过。"
+        },
+        {
+          "id": "surface-960px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 42"
+        },
+        {
+          "id": "layout-960px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "960px / seed 42：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-960px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "960px / seed 43"
+        },
+        {
+          "id": "layout-960px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "960px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-960px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "960px / seed 43：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-390px / seed 42",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 42"
+        },
+        {
+          "id": "layout-390px / seed 42",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 42：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 42",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "390px / seed 42：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "surface-390px / seed 43",
+          "label": "可见游戏界面",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "390px / seed 43"
+        },
+        {
+          "id": "layout-390px / seed 43",
+          "label": "屏幕适配",
+          "scope": "visual",
+          "status": "pass",
+          "detail": "390px / seed 43：未检测到横向溢出；美术与文字可读性需人工评估。"
+        },
+        {
+          "id": "input-390px / seed 43",
+          "label": "真实输入产生可见变化",
+          "scope": "input",
+          "status": "pass",
+          "detail": "390px / seed 43：同种子、同虚拟时钟下，可见游戏绘制区域的像素与无输入对照不同。DOM 需有实际文本/绘制样式/几何变化；不计原生焦点。仅证明操作引起可见变化。"
+        },
+        {
+          "id": "errors",
+          "label": "运行时异常",
+          "scope": "runtime",
+          "status": "pass",
+          "detail": "四组桌面/手机与随机种子测试未捕获 JavaScript 异常。"
+        },
+        {
+          "id": "playability",
+          "label": "玩法完整性",
+          "scope": "acceptance",
+          "status": "warn",
+          "detail": "胜负、数值、重开和游戏趣味尚需针对性验收；本报告不证明全部用户规则成立。"
+        }
+      ],
+      "durationMs": 7066
+    }
+  ]
+}

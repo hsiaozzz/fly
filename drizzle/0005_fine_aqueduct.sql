@@ -1,0 +1,1 @@
+ALTER TABLE `projects` ADD `sourcePublicationId` varchar(36);

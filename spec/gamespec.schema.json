@@ -1,0 +1,532 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "game",
+    "player",
+    "mechanics",
+    "entities",
+    "systems",
+    "input",
+    "config"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "game": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "genre",
+        "orientation",
+        "description"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "genre": {
+          "enum": [
+            "flappy",
+            "shooter",
+            "runner",
+            "journey"
+          ]
+        },
+        "orientation": {
+          "enum": [
+            "landscape",
+            "portrait"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "player": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "movement",
+        "color"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "movement": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        }
+      }
+    },
+    "mechanics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "entities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "systems": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "input": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "mouse",
+          "touch",
+          "keyboard"
+        ]
+      }
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "playerSpeed",
+        "gravity",
+        "obstacleGap",
+        "obstacleInterval",
+        "startingHealth"
+      ],
+      "properties": {
+        "playerSpeed": {
+          "type": "number",
+          "minimum": 80,
+          "maximum": 900
+        },
+        "gravity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2400
+        },
+        "obstacleGap": {
+          "type": "number",
+          "minimum": 80,
+          "maximum": 600
+        },
+        "obstacleInterval": {
+          "type": "number",
+          "minimum": 500,
+          "maximum": 6000
+        },
+        "startingHealth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        }
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "regions",
+        "nodes",
+        "events",
+        "endings"
+      ],
+      "properties": {
+        "start": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "regions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name",
+              "speed",
+              "drain",
+              "weather",
+              "palette",
+              "hazards"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "speed": {
+                "type": "number",
+                "minimum": 0.1,
+                "maximum": 3
+              },
+              "drain": {
+                "type": "number",
+                "minimum": 0.1,
+                "maximum": 4
+              },
+              "weather": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "palette": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "hazards": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "region",
+              "name",
+              "kind",
+              "distance"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "village",
+                  "stable",
+                  "camp",
+                  "ruin",
+                  "gate"
+                ]
+              },
+              "distance": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 10000
+              },
+              "routes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "label",
+                    "risk",
+                    "time"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "risk": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "time": {
+                      "type": "number",
+                      "minimum": 0.1,
+                      "maximum": 4
+                    }
+                  }
+                },
+                "maxItems": 3
+              }
+            }
+          }
+        },
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "title",
+              "text",
+              "weight",
+              "choices"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "weight": {
+                "type": "number"
+              },
+              "choices": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "label",
+                    "effects"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "requires": {
+                      "type": "string"
+                    },
+                    "log": {
+                      "type": "string"
+                    },
+                    "effects": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "maxItems": 3
+              }
+            }
+          }
+        },
+        "quests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "node",
+              "title",
+              "giver",
+              "text",
+              "choices"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "node": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "giver": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "requires": {
+                "type": "string"
+              },
+              "choices": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "label",
+                    "effects"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "requires": {
+                      "type": "string"
+                    },
+                    "log": {
+                      "type": "string"
+                    },
+                    "effects": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "maxItems": 3
+              }
+            }
+          }
+        },
+        "secrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "title",
+              "text",
+              "choices"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "hint": {
+                "type": "string"
+              },
+              "requires": {
+                "type": "string"
+              },
+              "choices": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "label",
+                    "effects"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "requires": {
+                      "type": "string"
+                    },
+                    "log": {
+                      "type": "string"
+                    },
+                    "effects": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "maxItems": 3
+              }
+            }
+          }
+        },
+        "endings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name",
+              "condition",
+              "text"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "condition": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

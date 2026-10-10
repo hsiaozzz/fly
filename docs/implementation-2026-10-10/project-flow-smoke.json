@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "mode": "mock model/API + real browser",
+  "testedAt": "2026-10-10T04:05:07.187Z",
+  "checks": [
+    "A/B dirty draft isolation",
+    "config parameters affect actual preview and enforce range",
+    "history preview and failed restore preserve dirty draft",
+    "failed save preservation",
+    "delayed save/project isolation",
+    "stale generation rejection",
+    "publish requires receipt and manual confirmation",
+    "save failure blocks publication",
+    "Explore/Play/Remix",
+    "mobile preview layout",
+    "revoke removes access"
+  ],
+  "apiCalls": 33
+}

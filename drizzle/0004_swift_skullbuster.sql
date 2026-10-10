@@ -1,0 +1,1 @@
+ALTER TABLE `publications` ADD `confirmedGameplay` int DEFAULT 0 NOT NULL;

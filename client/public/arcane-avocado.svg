@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2c6b3f"/>
+      <stop offset="1" stop-color="#16402a"/>
+    </linearGradient>
+    <linearGradient id="flesh" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef9d8"/>
+      <stop offset="0.55" stop-color="#d9efb0"/>
+      <stop offset="1" stop-color="#f3e7a6"/>
+    </linearGradient>
+    <radialGradient id="pit" cx="0.35" cy="0.3" r="0.9">
+      <stop offset="0" stop-color="#a06b36"/>
+      <stop offset="1" stop-color="#6e431f"/>
+    </radialGradient>
+  </defs>
+  <!-- 果皮圆角方形底 -->
+  <rect x="4" y="4" width="40" height="40" rx="11" fill="url(#skin)"/>
+  <!-- 果肉 -->
+  <ellipse cx="24" cy="26" rx="14" ry="12" fill="url(#flesh)"/>
+  <!-- 果核 -->
+  <ellipse cx="24" cy="28" rx="6.2" ry="7.6" fill="url(#pit)"/>
+  <!-- 果核高光 -->
+  <ellipse cx="21.8" cy="25" rx="1.9" ry="2.6" fill="#c89a63" opacity="0.85"/>
+</svg>
